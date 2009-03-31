@@ -133,7 +133,6 @@ BNODE *dofor(TNODE *e1, int m1, BNODE *e2, int m2, TNODE *e3, BNODE *n, int m3, 
  * doif - one-arm if statement
  */
 BNODE *doif(BNODE *e, int m, BNODE *s) {
-   //printf("doif not implemented\n");
    return ((BNODE *) NULL);
 }
 
@@ -141,7 +140,6 @@ BNODE *doif(BNODE *e, int m, BNODE *s) {
  * doifelse - if then else statement
  */
 BNODE *doifelse(BNODE *e, int m1, BNODE *s1, BNODE *n, int m2, BNODE *s2) {
-   //printf("doifelse not implemented\n");
    return ((BNODE *) NULL);
 }
 

@@ -20,6 +20,9 @@ void instr(char *i)  { printf("\t%s\n", i); }
 int cgen(TNODE *p) {
     if (!p) return;
     switch (p->t_op) {
+        case TO_CAST:
+            fprintf(stderr, "error: no cast\n");
+            break;
         case TO_FEND:
             printf("\tmovl\t%%ebp,%%esp\n");
             pop("ebp");
@@ -101,6 +104,8 @@ int cgen(TNODE *p) {
                 push("eax");
             } else if (p->t_mode & T_DOUBLE) {
                 instr("faddp");
+                printf("\tfstl\t(%%eax)\n");
+                push("eax");
             }
             break;
         case TO_MUL:
@@ -117,7 +122,11 @@ int cgen(TNODE *p) {
             break;
         case TO_NAME:
             printf("\tleal\t%s,%%eax\n", p->val.ln.t_id->i_name);
-            push("eax");
+            if (p->t_mode & T_INT) {
+                push("eax");
+            } else if (p->t_mode & T_DOUBLE) {
+                printf("\tfldl\t(%%eax)\n");
+            }
             break;
         case TO_CON:
             printf("\tpushl\t$%d\n", p->val.ln.t_con);
