@@ -6,6 +6,8 @@
 
 extern struct treeops opdope[];
 
+int L_number = 0;
+
 void left(TNODE *p)  { cgen(p->val.in.t_left); }
 void right(TNODE *p) { cgen(p->val.in.t_right); }
 void pop(char *reg)  { printf("\tpopl\t%%%s\n", reg); }
@@ -31,11 +33,11 @@ int cgen(TNODE *p) {
             instr("ret");
             break;
         case TO_STR:
+            L_number++;
             instr(".data");
-            // TODO: Assign label number
-            printf("L%02d:\t.asciz\t\"%s\"\n", 1, p->val.ln.t_str);
+            printf("L%02d:\t.asciz\t\"%s\"\n", L_number, p->val.ln.t_str);
             instr(".text");
-            printf("\tleal\tL%02d,%%eax\n", 1);
+            printf("\tleal\tL%02d,%%eax\n", L_number);
             push("eax");
             break;
         case TO_LIST:

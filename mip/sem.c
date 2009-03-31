@@ -26,9 +26,11 @@ TNODE *call(char *f, TNODE *args) {
 
     TNODE *fn = (TNODE *) tnode();
     fn->t_op = TO_NAME;
-    IDENT *i = lookup(f, level);
+    // TODO: Figure out scope/level
+    //IDENT *i = lookup(f, level);
+    IDENT *i = lookup(f, 0);
     if (i == NULL) {
-        fprintf(stderr, "error: function '%s' not found, installing\n", f);
+        fprintf(stderr, "warning: function '%s' not found, installing\n", f);
         i = install(f, LOCAL);
         i->i_type = T_INT | T_PTR | T_PROC;
     }
@@ -324,6 +326,9 @@ TNODE *op_arith(int op, TNODE *x, TNODE *y) {
     ret->t_mode = promote(x, y);
     ret->val.in.t_left = x;
     ret->val.in.t_right = y;
+    if (op == TO_DIV && y->t_op == TO_CON && y->val.ln.t_con == 0) {
+        fprintf(stderr, "warning: division by zero\n");
+    }
     return ret;
 }
 
