@@ -20,6 +20,65 @@ void instr(char *i)  { printf("\t%s\n", i); }
 int cgen(TNODE *p) {
     if (!p) return;
     switch (p->t_op) {
+        case TO_EQU:
+            printf("\t.B%d=.L%d\n", p->val.in.t_left->val.ln.t_con,
+                                    p->val.in.t_right->val.ln.t_con);
+            break;
+        case TO_CMPEQ:
+            right(p);
+            left(p);
+            printf("\tmovl\t$0,%%ecx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tpopl\t%%edx\n");
+            printf("\tcmpl\t%%eax,%%edx\n");
+            L_number++;
+            printf("\tjne\tL0%d\n", L_number);
+            printf("\tincl\t%%ecx\n");
+            printf("L0%d:\n", L_number);
+            printf("\tpushl\t%%ecx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t$0,%%eax\n");
+            break;
+        case TO_CMPGT:
+            right(p);
+            left(p);
+            printf("\tmovl\t$0,%%ecx\n");
+            printf("\tpopl\t%%edx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t%%eax,%%edx\n");
+            L_number++;
+            printf("\tjle\tL0%d\n", L_number);
+            printf("\tincl\t%%ecx\n");
+            printf("L0%d:\n", L_number);
+            printf("\tpushl\t%%ecx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t$0,%%eax\n");
+            break;
+        case TO_CMPLT:
+            right(p);
+            left(p);
+            printf("\tmovl\t$0,%%ecx\n");
+            printf("\tpopl\t%%edx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t%%eax,%%edx\n");
+            L_number++;
+            printf("\tjge\tL0%d\n", L_number);
+            printf("\tincl\t%%ecx\n");
+            printf("L0%d:\n", L_number);
+            printf("\tpushl\t%%ecx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t$0,%%eax\n");
+            break;
+        case TO_JMPT:
+            right(p);
+            printf("\tjne\t.B%d\n", p->val.in.t_left->val.ln.t_con);
+            break;
+        case TO_JMP:
+            printf("\tjmp\t.B%d\n", p->val.in.t_left->val.ln.t_con);
+            break;
+        case TO_LABEL:
+            printf(".L%d:\n", p->val.ln.t_con);
+            break;
         case TO_CAST:
             fprintf(stderr, "error: no cast\n");
             break;
@@ -38,9 +97,9 @@ int cgen(TNODE *p) {
         case TO_STR:
             L_number++;
             instr(".data");
-            printf("L%02d:\t.asciz\t\"%s\"\n", L_number, p->val.ln.t_str);
+            printf("L0%d:\t.asciz\t\"%s\"\n", L_number, p->val.ln.t_str);
             instr(".text");
-            printf("\tleal\tL%02d,%%eax\n", L_number);
+            printf("\tleal\tL0%d,%%eax\n", L_number);
             push("eax");
             break;
         case TO_LIST:
@@ -121,7 +180,11 @@ int cgen(TNODE *p) {
             }
             break;
         case TO_NAME:
-            printf("\tleal\t%s,%%eax\n", p->val.ln.t_id->i_name);
+            if (p->val.ln.t_id->i_blevel == 2) {
+                printf("\tleal\t%s,%%eax\n", p->val.ln.t_id->i_name);
+            } else if (p->val.ln.t_id->i_blevel > 2) {
+                printf("\tleal\t-%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset);
+            }
             if (p->t_mode & T_INT) {
                 push("eax");
             } else if (p->t_mode & T_DOUBLE) {

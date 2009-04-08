@@ -132,7 +132,7 @@ stmts   :                       { $$ = 0; }
         | stmts m stmt          { $$ = dostmts($1, $2, $3); }
         ;
 
-stmt    : expr ';'		
+stmt    : expr ';'
                 { emittree($1); $$ = (BNODE *) NULL; }
         | IF '(' cexpr ')' m stmt
                 { $$ = doif($3, $5, $6); }

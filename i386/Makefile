@@ -38,5 +38,11 @@ example:
 	gcc -m32 -o example-p1 example-p1.o
 	./example-p1
 
+example2:
+	./csem -showtree -codegen < example-p2.c > example-p2.s
+	gcc -m32 -c example-p2.s
+	gcc -m32 -o example-p2 example-p2.o
+	./example-p2
+
 clean:
-	rm -f *.o *.s csem cgram.c y.tab.h example-p1
+	rm -f *.o *.s csem cgram.c y.tab.h example-p1 example-p2

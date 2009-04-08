@@ -47,32 +47,46 @@ TNODE *call(char *f, TNODE *args) {
  * ccand - logical and
  */
 BNODE *ccand(BNODE *e1, int m, BNODE *e2) {
-   //printf("ccand not implemented\n");
-   return ((BNODE *) NULL);
+    //backpatch(e1->back.b_true, m);
+    BNODE *b = (BNODE *) bnode();
+    b->b_label = labelno;
+    b->back.b_true = e2->back.b_true;
+    //b->b_false = (BNODE *) merge(e1->b_false, e2->b_false);
+    return b;
 }
 
 /*
  * ccexpr - convert arithmetic expression to logical expression
  */
 BNODE *ccexpr(TNODE *e) {
-   //printf("ccexpr not implemented\n");
-   return ((BNODE *) NULL);
+    printf("* ccexpr called\n");
+    // TODO:
+    BNODE *b = (BNODE *) bnode();
+    b->b_label = labelno;
+    return b;
 }
 
 /*
  * ccnot - logical not
  */
 BNODE *ccnot(BNODE *e) {
-   //printf("ccnot not implemented\n");
-   return ((BNODE *) NULL);
+    BNODE *b = (BNODE *) bnode();
+    b->b_label = labelno;
+    b->back.b_true = e->b_false;
+    b->b_false = e->back.b_true;
+    return b;
 }
 
 /*
  * ccor - logical or
  */
 BNODE *ccor(BNODE *e1, int m, BNODE *e2) {
-   //printf("ccor not implemented\n");
-   return ((BNODE *) NULL);
+    //backpatch(e1->b_false, m);
+    BNODE *b = (BNODE *) bnode();
+    b->b_label = labelno;
+    //b->back.b_true = (BNODE *) merge(e1->back.b_true, e2->back.b_true);
+    b->b_false = e2->b_false;
+    return b;
 }
 
 /*
@@ -90,42 +104,59 @@ TNODE *con(int c) {
  * dcl - add attributes to declaration
  */
 IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
-    if (p == NULL) {
-        p = install(name, level);
-        p->i_type = type;
-        p->i_width = width;
-        p->i_blevel = level;
-        p->i_scope = level; // TODO scope; ?
-        p->i_defined = 0;
-    } else {
-        p->i_type = type;
-        p->i_defined = 1;
-        TNODE *e = (TNODE *) tnode();
-        e->t_op = TO_ALLOC;
-        e->t_mode = p->i_type;
+    if (level == 2) {
+        if (p == NULL) {
+            p = install(name, level);
+            p->i_type = type;
+            p->i_width = width;
+            p->i_blevel = level;
+            p->i_scope = scope;
+            p->i_defined = 0;
+        } else {
+            p->i_type = type;
+            p->i_defined = 1;
+            TNODE *e = (TNODE *) tnode();
+            e->t_op = TO_ALLOC;
+            e->t_mode = p->i_type;
 
-        TNODE *l = (TNODE *) tnode();
-        l->t_op = TO_NAME;
-        l->val.ln.t_id = p;
-        l->t_mode = p->i_type;
-        e->val.in.t_left = l;
+            TNODE *l = (TNODE *) tnode();
+            l->t_op = TO_NAME;
+            l->val.ln.t_id = p;
+            l->t_mode = p->i_type;
+            e->val.in.t_left = l;
 
-        TNODE *r = (TNODE *) tnode();
-        r->t_op = TO_CON;
-        r->val.ln.t_con = 4;    // TODO: Change for other types?
-        r->t_mode = p->i_type;
-        e->val.in.t_right = r;
+            TNODE *r = (TNODE *) tnode();
+            r->t_op = TO_CON;
+            r->val.ln.t_con = 4;    // TODO: Change for other types?
+            r->t_mode = p->i_type;
+            e->val.in.t_right = r;
 
-        emittree(e);
+            emittree(e);
+        }
+        return p;
+    } else if (level > 2) {
+        if (p == NULL) {
+            loff += width * 4;
+            p = install(name, level);
+            p->i_type = type;
+            p->i_width = width;
+            p->i_blevel = level;
+            p->i_scope = scope;
+            p->i_defined = 0;
+            p->i_offset = loff;
+        } else {
+            p->i_type = type;
+        }
+        return p;
+    } else if (scope == PARAM) {
+        printf("param scope\n");
     }
-    return p;
 }
 
 /*
  * dofor - for statement
  */
 BNODE *dofor(TNODE *e1, int m1, BNODE *e2, int m2, TNODE *e3, BNODE *n, int m3, BNODE *s) {
-   //printf("dofor not implemented\n");
    return ((BNODE *) NULL);
 }
 
@@ -133,14 +164,71 @@ BNODE *dofor(TNODE *e1, int m1, BNODE *e2, int m2, TNODE *e3, BNODE *n, int m3, 
  * doif - one-arm if statement
  */
 BNODE *doif(BNODE *e, int m, BNODE *s) {
-   return ((BNODE *) NULL);
+    //backpatch(e->back.b_true, m);
+    int lbl;
+    //BNODE *tmp = e;
+    //while (tmp) {
+    //    lbl = tmp->b_label;
+    //    tmp->b_label = m;
+    //    tmp = tmp->back.b_true;
+    //}
+    BNODE *b = (BNODE *) bnode();
+    b->b_label = m;
+    //if (s) { b->back.b_link = (BNODE *) merge(e->b_false, s->back.b_link); }
+    //else { b->back.b_link = (BNODE *) merge(e->b_false, (BNODE *) NULL); }
+
+    TNODE *equ = (TNODE *) tnode();
+    equ->t_op = TO_EQU;
+    equ->t_mode = 0;
+    TNODE *bl = (TNODE *) tnode();
+    bl->t_op = TO_BLABEL;
+    bl->t_mode = 0;
+    bl->val.ln.t_con = e->back.b_true->b_label;
+    //bl->val.ln.t_con = e->b_label;
+    //bl->val.ln.t_con = lbl;
+    TNODE *l = (TNODE *) tnode();
+    l->t_op = TO_LABEL;
+    l->t_mode = 0;
+    //l->val.ln.t_con = labelno;
+    l->val.ln.t_con = m;
+    equ->val.in.t_left = bl;
+    equ->val.in.t_right = l;
+    emittree(equ);
+
+    return b;
 }
 
 /*
  * doifelse - if then else statement
  */
 BNODE *doifelse(BNODE *e, int m1, BNODE *s1, BNODE *n, int m2, BNODE *s2) {
-   return ((BNODE *) NULL);
+    //backpatch(e->back.b_true, m1);
+    //backpatch(e->b_false, m2);
+    BNODE *temp;
+    //if (s1) { temp = (BNODE *) merge(s1->back.b_link, n->back.b_link); }
+    //else { temp = (BNODE *) merge((BNODE *) NULL, n->back.b_link); }
+    BNODE *ret = (BNODE *) bnode();
+    ret->b_label = labelno;
+    //if (s2) { ret->back.b_link = (BNODE *) merge(temp, s2->back.b_link); }
+    //else { ret->back.b_link = (BNODE *) merge(temp, (BNODE *) NULL); }
+
+    labelno++;
+    TNODE *equ = (TNODE *) tnode();
+    equ->t_op = TO_EQU;
+    equ->t_mode = 0;
+    TNODE *bl = (TNODE *) tnode();
+    bl->t_op = TO_BLABEL;
+    bl->t_mode = 0;
+    bl->val.ln.t_con = m1;
+    TNODE *l = (TNODE *) tnode();
+    l->t_op = TO_LABEL;
+    l->t_mode = 0;
+    l->val.ln.t_con = labelno;
+    equ->val.in.t_left = bl;
+    equ->val.in.t_right = l;
+    emittree(equ);
+
+    return ret;
 }
 
 /*
@@ -148,6 +236,7 @@ BNODE *doifelse(BNODE *e, int m1, BNODE *s1, BNODE *n, int m2, BNODE *s2) {
  */
 BNODE *doret(TNODE *e) {
     BNODE *ret = (BNODE *) bnode();
+    ret->b_label = labelno;
 
     TNODE *tmp = (TNODE *) tnode();
     tmp->t_op = TO_RET;
@@ -210,21 +299,9 @@ IDENT *fhead(IDENT *p) {
     r->t_op = TO_LIST;
     r->t_mode = 0;
 
-    /*
-    TNODE *arg_size = (TNODE *) tnode();
-    arg_size->t_op = TO_CON;
-    arg_size->t_mode = T_INT;
-    arg_size->val.ln.t_con = 0; // TODO: ?
-    */
-    TNODE *arg_size = con(0);
-
-    /*
-    TNODE *loc_size = (TNODE *) tnode();
-    loc_size->t_op = TO_CON;
-    loc_size->t_mode = T_INT;
-    loc_size->val.ln.t_con = 0; // TODO: ?
-    */
-    TNODE *loc_size = con(0);
+    TNODE *arg_size = con(aoff);
+    TNODE *loc_size = con(loff);
+    loff = aoff = 0;
 
     r->val.in.t_left = arg_size;
     r->val.in.t_right = loc_size;
@@ -232,6 +309,7 @@ IDENT *fhead(IDENT *p) {
     e->val.in.t_right = r;
 
     emittree(e);
+
     return p;
 }
 
@@ -266,7 +344,6 @@ void ftail(IDENT *p, BNODE *s, int m) {
     emittree(tmp);
 }
 
-
 /*
  * id - variable reference
  */
@@ -296,15 +373,36 @@ TNODE *aindex(TNODE *x, TNODE *i) {
  * m - generate a label
  */
 int m(void) {
-   return 0;
+    labelno++;
+    TNODE *nd = (TNODE *) tnode();
+    nd->t_op = TO_LABEL;
+    nd->t_mode = 0;
+    nd->val.ln.t_con = labelno;
+    emittree(nd);
+    return labelno;
 }
 
 /*
  * n - generate goto and return backpatch pointer
  */
 BNODE *n(void) {
-   //printf("n not implemented\n");
-   return ((BNODE *) NULL);
+    printf("# Call N\n");
+    labelno++;
+    TNODE *nd = (TNODE *) tnode();
+    nd->t_op = TO_BLABEL;
+    nd->t_mode = 0;
+    nd->val.ln.t_con = labelno;
+
+    TNODE *jmp = (TNODE *) tnode();
+    jmp->t_op = TO_JMP;
+    jmp->t_mode = T_INT;
+    jmp->val.in.t_left = nd;
+
+    emittree(jmp);
+
+    BNODE *ret = (BNODE *) bnode();
+    ret->b_label = labelno;
+    return ret;
 }
 
 /*
@@ -397,8 +495,48 @@ TNODE *op_neg(TNODE *x) {
  * rel - relational operators
  */
 BNODE *rel(int op, TNODE *x, TNODE *y) {
-   printf("rel not implemented\n");
-   return ((BNODE *) NULL);
+    TNODE *cmp_node = (TNODE *) tnode();
+    cmp_node->t_op = op;
+    // TODO: cast
+    cmp_node->t_mode = x->t_mode;
+    cmp_node->val.in.t_left = x;
+    cmp_node->val.in.t_right = y;
+
+    TNODE *bl_node = (TNODE *) tnode();
+    bl_node->t_op = TO_BLABEL;
+    bl_node->t_mode = 0;
+    bl_node->val.ln.t_con = ++labelno;
+
+    TNODE *jmpt_node = (TNODE *) tnode();
+    jmpt_node->t_op = TO_JMPT;
+    jmpt_node->t_mode = T_INT;
+    jmpt_node->val.in.t_left = bl_node;
+    jmpt_node->val.in.t_right = cmp_node;
+
+    emittree(jmpt_node);
+
+    TNODE *jmp = (TNODE *) tnode();
+    jmp->t_op = TO_JMP;
+    jmp->t_mode = T_INT;
+
+    TNODE *bl = (TNODE *) tnode();
+    bl->t_op = TO_BLABEL;
+    bl->t_mode = 0;
+    bl->val.ln.t_con = ++labelno;
+
+    jmp->val.in.t_left = bl;
+    emittree(jmp);
+
+    BNODE *truelist = (BNODE *) bnode();
+    truelist->b_label = labelno;
+    BNODE *falselist = (BNODE *) bnode();
+    falselist->b_label = labelno + 1;
+
+    BNODE *b = (BNODE *) bnode();
+    b->back.b_true = truelist;
+    b->b_false = falselist;
+    b->b_label = labelno;
+    return b;
 }
 
 /*
