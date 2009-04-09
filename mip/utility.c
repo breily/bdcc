@@ -210,3 +210,35 @@ int promote(TNODE *l, TNODE *r) {
     }
     return T_INT;
 }
+
+/*
+void backpatch_true(BNODE *b, int m) {
+    while (b) {
+        b->b_label = m;
+        b = b->back.b_true;
+    }
+}
+
+void backpatch_false(BNODE *b, int m) {
+    while (b) {
+        b->b_label = m;
+        b = b->b_false;
+    }
+}
+*/
+
+void backpatch(BNODE *b, int m) {
+    while (b) {
+        b->b_label = m;
+        b = b->back.b_link;
+    }
+}
+
+BNODE *merge(BNODE *a, BNODE *b) {
+    if (!b) return a;
+    if (!a) return b;
+    BNODE *c = a;
+    while (c->back.b_link) c = c->back.b_link;
+    c->back.b_link = b;
+    return c;
+}
