@@ -157,7 +157,56 @@ IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
  * dofor - for statement
  */
 BNODE *dofor(TNODE *e1, int m1, BNODE *e2, int m2, TNODE *e3, BNODE *n, int m3, BNODE *s) {
-   return ((BNODE *) NULL);
+    int lbl1, lbl2;
+    BNODE *cp = e2;
+    while (cp->back.b_true) cp = cp->back.b_true;
+    lbl1 = cp->b_label - 1;
+
+    cp = e2;
+    while (cp->b_false) cp = cp->b_false;
+    lbl2 = cp->b_label + 1;
+
+    TNODE *bl_eq1 = (TNODE *) tnode();
+    bl_eq1->t_op = TO_BLABEL;
+    bl_eq1->val.ln.t_con = lbl1;
+    TNODE *l_eq1 = (TNODE *) tnode();
+    l_eq1->t_op = TO_LABEL;
+    l_eq1->val.ln.t_con = m3;
+    TNODE *eq1 = (TNODE *) tnode();
+    eq1->t_op = TO_EQU;
+    eq1->val.in.t_left = bl_eq1;
+    eq1->val.in.t_right = l_eq1;
+    emittree(eq1);
+
+    TNODE *bl_eq2 = (TNODE *) tnode();
+    bl_eq2->t_op = TO_BLABEL;
+    bl_eq2->val.ln.t_con = lbl2;
+    TNODE *l_eq2 = (TNODE *) tnode();
+    l_eq2->t_op = TO_LABEL;
+    l_eq2->val.ln.t_con = m1;
+    TNODE *eq2 = (TNODE *) tnode();
+    eq2->t_op = TO_EQU;
+    eq2->val.in.t_left = bl_eq2;
+    eq2->val.in.t_right = l_eq2;
+    emittree(eq2);
+
+    TNODE *jmp_l = (TNODE *) tnode();
+    jmp_l->t_op = TO_LABEL;
+    jmp_l->val.ln.t_con = m2;
+    TNODE *jmp = (TNODE *) tnode();
+    jmp->t_op = TO_JMP;
+    jmp->t_mode = T_INT;
+    jmp->val.in.t_left = jmp_l;
+    emittree(jmp);
+
+    if (s) backpatch(s->back.b_link, m2);
+    backpatch(e2->back.b_true, m2);
+
+    BNODE *ret = (BNODE *) bnode();
+    ret->b_label = labelno;
+    ret->back.b_link = e2->b_false;
+
+    return ret;
 }
 
 /*
