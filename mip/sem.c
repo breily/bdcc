@@ -490,7 +490,6 @@ IDENT *fhead(IDENT *p) {
     // TODO: double align
     TNODE *arg_size = con(aoff);
     TNODE *loc_size = con(loff);
-    loff = aoff = 0;
 
     r->val.in.t_left = arg_size;
     r->val.in.t_right = loc_size;
@@ -506,6 +505,7 @@ IDENT *fhead(IDENT *p) {
  * fname - function declaration
  */
 IDENT *fname(TWORD t, char *id) {
+    // TODO: check if already defined
     IDENT *ret = install(id, level);
     ret->i_type = t | T_PROC | T_PTR;
     ret->i_name = id;
@@ -513,6 +513,7 @@ IDENT *fname(TWORD t, char *id) {
     ret->i_defined = 0;
     ret->i_scope = GLOBAL;
     enterblock();
+    loff = aoff = 0;
     return ret;
 }
 
