@@ -368,25 +368,6 @@ BNODE *dostmts(BNODE *sl, int m, BNODE *s) {
         sl->b_label = m;
         sl->back.b_link = s;
     }
-    /*
-    if (s) {
-        TNODE *bl = (TNODE *) tnode();
-        bl->t_op = TO_BLABEL;
-        bl->val.ln.t_con = 100;
-        TNODE *l = (TNODE *) tnode();
-        l->t_op = TO_LABEL;
-        l->val.ln.t_con = 100;
-
-        TNODE *equ = (TNODE *) tnode();
-        equ->t_op = TO_EQU;
-        equ->val.in.t_left = bl;
-        equ->val.in.t_right = l;
-        
-        printf("# Generated from dostmts\n");
-        emittree(equ);
-    }
-    */
-
     return sl;
 }
 
@@ -394,8 +375,35 @@ BNODE *dostmts(BNODE *sl, int m, BNODE *s) {
  * dowhile - while statement
  */
 BNODE *dowhile(int m1, BNODE *e, int m2, BNODE *s) {
-   //printf("dowhile not implemented\n");
-   return ((BNODE *) NULL);
+    TNODE *bl = (TNODE *) tnode();
+    bl->t_op = TO_BLABEL;
+    bl->val.ln.t_con = m1 + 1;
+    TNODE *l0 = (TNODE *) tnode();
+    l0->t_op = TO_LABEL;
+    l0->val.ln.t_con = m2;
+    TNODE *equ = (TNODE *) tnode();
+    equ->t_op = TO_EQU;
+    equ->val.in.t_left = bl;
+    equ->val.in.t_right = l0;
+    emittree(equ);
+
+    TNODE *l1 = (TNODE *) tnode();
+    l1->t_op = TO_LABEL;
+    l1->val.ln.t_con = m1;
+    TNODE *j = (TNODE *) tnode();
+    j->t_op = TO_JMP;
+    j->t_mode = T_INT;
+    j->val.in.t_left = l1;
+    emittree(j);
+
+    backpatch(s->back.b_link, m1);
+    backpatch(e->back.b_true, m2);
+    
+    BNODE *b = (BNODE *) bnode();
+    b->b_label = labelno;
+    b->back.b_link = e->b_false;
+
+    return b;
 }
 
 /*
@@ -463,6 +471,15 @@ IDENT *fname(TWORD t, char *id) {
  * ftail - end of function body
  */
 void ftail(IDENT *p, BNODE *s, int m) {
+    // TODO: Fix this warning
+    printf("# Warning: Last EQU not generated if 'return' not\n");
+    printf("#          explicitly stated.\n");
+    TNODE *retval = (TNODE *) tnode();
+    retval->t_op = TO_CON;
+    retval->t_mode = T_INT;
+    retval->val.ln.t_con = 0;
+    doret(retval);
+
     TNODE *tmp = (TNODE *) tnode();
     tmp->t_op = TO_FEND;
     tmp->t_mode = p->i_type;

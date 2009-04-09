@@ -74,7 +74,10 @@ int cgen(TNODE *p) {
             printf("\tjne\t.B%d\n", p->val.in.t_left->val.ln.t_con);
             break;
         case TO_JMP:
-            printf("\tjmp\t.B%d\n", p->val.in.t_left->val.ln.t_con);
+            if (p->val.in.t_left->t_op == TO_BLABEL)
+                printf("\tjmp\t.B%d\n", p->val.in.t_left->val.ln.t_con);
+            else if (p->val.in.t_left->t_op == TO_LABEL)
+                printf("\tjmp\t.L%d\n", p->val.in.t_left->val.ln.t_con);
             break;
         case TO_LABEL:
             printf(".L%d:\n", p->val.ln.t_con);
