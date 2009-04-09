@@ -21,8 +21,17 @@ int cgen(TNODE *p) {
     if (!p) return;
     switch (p->t_op) {
         case TO_EQU:
-            printf("\t.B%d=.L%d\n", p->val.in.t_left->val.ln.t_con,
-                                    p->val.in.t_right->val.ln.t_con);
+            printf("\t.");
+            if (p->val.in.t_left->t_op == TO_BLABEL)
+                printf("B");
+            else if (p->val.in.t_left->t_op == TO_LABEL)
+                printf("L");
+            printf("%d=.", p->val.in.t_left->val.ln.t_con);
+            if (p->val.in.t_right->t_op == TO_BLABEL)
+                printf("B");
+            else if (p->val.in.t_right->t_op == TO_LABEL)
+                printf("L");
+            printf("%d\n", p->val.in.t_right->val.ln.t_con);
             break;
         case TO_CMPEQ:
             right(p);
