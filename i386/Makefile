@@ -45,4 +45,4 @@ example2:
 	./example-p2
 
 clean:
-	rm -f *.o *.s csem cgram.c y.tab.h example-p1 example-p2 *test
+	rm -f *.o *.s csem cgram.c y.tab.h example-p1 example-p2

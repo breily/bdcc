@@ -18,7 +18,10 @@ void instr(char *i)  { printf("\t%s\n", i); }
  * cgen - walk tree and emit code
  */
 int cgen(TNODE *p) {
-    if (!p) return;
+    if (!p) {
+        fprintf(stderr, "warning: cgen call on null TNODE\n");
+        return;
+    }
     switch (p->t_op) {
         case TO_EQU:
             printf("\t.");
@@ -240,7 +243,7 @@ int cgen(TNODE *p) {
                    8 + p->val.in.t_right->val.in.t_right->val.ln.t_con);
             break;
         default:
-            fprintf(stderr, "\t# cgen not implemented for %s\n",
+            fprintf(stderr, "warning: cgen not implemented for '%s'\n",
                 opdope[p->t_op].opstring);
     }
     return 0;

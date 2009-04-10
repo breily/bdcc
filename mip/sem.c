@@ -522,8 +522,8 @@ IDENT *fname(TWORD t, char *id) {
  */
 void ftail(IDENT *p, BNODE *s, int m) {
     // TODO: Fix this warning
-    printf("# Warning: Last EQU not generated if 'return' not\n");
-    printf("#          explicitly stated.\n");
+    fprintf(stderr, "warning: last equ will not be generated unless\n");
+    fprintf(stderr, "         'return' is explicitly stated.\n");
     TNODE *retval = (TNODE *) tnode();
     retval->t_op = TO_CON;
     retval->t_mode = T_INT;
