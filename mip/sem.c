@@ -59,7 +59,7 @@ BNODE *ccand(BNODE *e1, int m, BNODE *e2) {
  * ccexpr - convert arithmetic expression to logical expression
  */
 BNODE *ccexpr(TNODE *e) {
-    printf("* ccexpr called\n");
+    fprintf(stderr, "warning: ccexpr called, but not implemented\n");
     // TODO:
     BNODE *b = (BNODE *) bnode();
     b->b_label = labelno;
@@ -487,6 +487,7 @@ IDENT *fhead(IDENT *p) {
     r->t_op = TO_LIST;
     r->t_mode = 0;
 
+    fprintf(stderr, "warning: function arguments and locals are not double aligned\n");
     // TODO: double align
     TNODE *arg_size = con(aoff);
     TNODE *loc_size = con(loff);
@@ -522,8 +523,7 @@ IDENT *fname(TWORD t, char *id) {
  */
 void ftail(IDENT *p, BNODE *s, int m) {
     // TODO: Fix this warning
-    fprintf(stderr, "warning: last equ will not be generated unless\n");
-    fprintf(stderr, "         'return' is explicitly stated.\n");
+    fprintf(stderr, "warning: last equ will not be generated unless 'return' is stated\n");
     TNODE *retval = (TNODE *) tnode();
     retval->t_op = TO_CON;
     retval->t_mode = T_INT;
@@ -696,6 +696,7 @@ BNODE *rel(int op, TNODE *x, TNODE *y) {
     TNODE *cmp_node = (TNODE *) tnode();
     cmp_node->t_op = op;
     // TODO: cast
+    fprintf(stderr, "warning: no casting is done for rel ops\n");
     cmp_node->t_mode = x->t_mode;
     cmp_node->val.in.t_left = x;
     cmp_node->val.in.t_right = y;
