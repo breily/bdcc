@@ -1,7 +1,7 @@
 /*
  * test14 - check to see if op1 works
  */
-main()
+main() 
 {
    int i, j, k;
    double a, b, c;
@@ -10,7 +10,7 @@ main()
    i = -j;      /* integer arithmetic */
    printf("i is %d\n", i);
    a = 11;
-   b = -a;      /* double arithmetic */
+   b = -a;        /* double arithmetic  */
    printf("b is %f\n", b);
 
    j = 1;

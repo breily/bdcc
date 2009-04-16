@@ -1,0 +1,37 @@
+test1       pass        2  /  2
+test2       fail        0  /  2
+test3       fail        0  /  2
+test4a      fail        0  /  2
+test4b      fail        0  /  2
+test5       pass        2  /  2
+test6       fail        0  /  2
+test7       pass        2  /  2
+test8       fail        0  /  2
+test9       pass        2  /  2
+test10      fail        0  /  2
+test11      fail        0  /  2
+test12      pass        2  /  2
+test13      fail        0  /  2
+test14      fail        0  /  2
+test15      fail        0  /  2
+test16      fail        0  /  2
+test17      fail        0  /  2
+test18      fail        0  /  2
+test19      fail        0  /  2
+test20      fail        0  /  2
+test21      fail        0  /  2
+test22      fail        0  /  2
+test23      fail        0  /  2
+test24      fail        0  /  2
+test25      fail        0  /  2
+test26      fail        0  /  2
+test27      fail        0  /  2
+example-p1  pass        6  /  6
+example-p2  pass        6  /  6
+8q          fail        0  /  4
+ackerman    fail        0  /  3
+bubblesort  fail        0  /  6
+shellsort   fail        0  /  6
+wc                      0  /  5
+cf                      0  /  8
+                       22  /  100

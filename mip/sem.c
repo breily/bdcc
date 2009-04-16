@@ -104,7 +104,9 @@ TNODE *con(int c) {
  * dcl - add attributes to declaration
  */
 IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
-    if (level == 2) {
+    if (scope == PARAM) {
+        printf("notice: param scope\n");
+    } else if (level == 2) {
         if (p == NULL) {
             p = install(name, level);
             p->i_type = type;
@@ -148,8 +150,6 @@ IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
             p->i_type = type;
         }
         return p;
-    } else if (scope == PARAM) {
-        printf("param scope\n");
     }
 }
 

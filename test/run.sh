@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # set FE to point to your compiler front end
 FE=../i386/csem
 
@@ -10,16 +12,18 @@ testfiles="test1 test2 test3 test4a test4b test5 test6 test7 \
    test26 test27 example-p1 example-p2 8q ackerman bubblesort shellsort"
 
 for j in ${testfiles} ; do
-   echo "Compiling ${j}"
+   #echo "Compiling ${j}"
    ${FE} -showtree -codegen <${j}.c >${j}.s
   gcc -m32 -o ${j}.exe ${j}.s
    ./${j}.exe >$j.out
    gcc ${GCCFLAGS} -m32 -o ${j}.exe1 ${j}.c
    ./${j}.exe1 >${j}.out1
    if cmp ${j}.out ${j}.out1 ; then
-      echo "${j} executed correctly"
+      #echo "${j} executed correctly"
+        echo "${j}          pass"
    else
-      echo "${j} did NOT execute correctly"
+      #echo "${j} did NOT execute correctly"
+        echo "${j}"
 #      diff ${j}.out ${j}.out1
    fi
    rm -f ${j}.out ${j}.out1 ${j}.exe ${j}.exe1

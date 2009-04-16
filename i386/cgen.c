@@ -194,6 +194,58 @@ int cgen(TNODE *p) {
                 instr("fmulp");
             }
             break;
+        case TO_RS:
+            left(p);
+            right(p);
+            pop("ecx");
+            pop("eax");
+            printf("\tshr\t%%eax\n");
+            push("eax");
+            break;
+        case TO_LS:
+            left(p);
+            right(p);
+            pop("ecx");
+            pop("eax");
+            printf("\tshl\t%%eax\n");
+            push("eax");
+            break;
+        case TO_OR:
+            left(p);
+            right(p);
+            pop("eax");
+            pop("edx");
+            printf("\tor\t%%eax,%%edx\n");
+            push("edx");
+            break;
+        case TO_XOR:
+            left(p);
+            right(p);
+            pop("eax");
+            pop("edx");
+            printf("\txor\t%%eax,%%edx\n");
+            push("edx");
+            break;
+        case TO_AND:
+            left(p);
+            right(p);
+            pop("eax");
+            pop("edx");
+            printf("\tand\t%%eax,%%edx\n");
+            push("edx");
+            break;
+        case TO_NEGATE:
+            left(p);
+            pop("eax");
+            printf("\tneg\t%%eax\n");
+            push("eax");
+            break;
+        case TO_COMP:
+            left(p);
+            pop("eax");
+            printf("\tnot\t%%eax\n");
+            push("eax");
+            break;
         case TO_NAME:
             if (p->val.ln.t_id->i_blevel == 2) {
                 printf("\tleal\t%s,%%eax\n", p->val.ln.t_id->i_name);
