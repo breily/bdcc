@@ -522,8 +522,38 @@ IDENT *fname(TWORD t, char *id) {
  * ftail - end of function body
  */
 void ftail(IDENT *p, BNODE *s, int m) {
-    // TODO: Fix this warning
-    fprintf(stderr, "warning: last equ will not be generated unless 'return' is stated\n");
+    /*
+    printf("s->b_label: %d\n", s->b_label);
+    BNODE *cp = s;
+    while (cp) {
+        if (cp->back.b_link)
+            printf("s->back.b_link->b_label: %d\n", cp->back.b_link->b_label);
+        cp = cp->back.b_link;
+    }
+    cp = s;
+    while (cp) {
+        if (cp->b_false)
+            printf("s->b_false->b_label: %d\n", cp->b_false->b_label);
+        cp = cp->b_false;
+    }
+    printf("m: %d\n", m);
+    */
+    BNODE *last = s;
+    while (last->back.b_link) last = last->back.b_link;
+    if (last->b_label > 1) {
+        TNODE *bl = (TNODE *) tnode();
+        bl->t_op = TO_BLABEL;
+        bl->val.ln.t_con = last->b_label - 1;
+        TNODE *l = (TNODE *) tnode();
+        l->t_op = TO_LABEL;
+        l->val.ln.t_con = m;
+        TNODE *equ = (TNODE *) tnode();
+        equ->t_op = TO_EQU;
+        equ->val.in.t_left = bl;
+        equ->val.in.t_right = l;
+        emittree(equ);
+    }
+
     TNODE *retval = (TNODE *) tnode();
     retval->t_op = TO_CON;
     retval->t_mode = T_INT;

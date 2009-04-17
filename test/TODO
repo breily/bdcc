@@ -1,4 +1,3 @@
-* Generate last EQU without return statement
 * Function arguments
 * Double arithmetic
 * Comparison operators
@@ -9,7 +8,9 @@
 # 1AM, Apr. 16: 7 passes (22/100 points)
 # Passing: test1 test5 test7 test9 test12 example-p1 example-p2
 
-
+# 12:30AM, Apr. 17: 12 passes (32/100 points)
+# Passing: test1 test3 test5 test7 test9 test12 test15 
+#          test18 test19 test20 example-p1 example-p2 
 
 
 

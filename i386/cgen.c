@@ -22,6 +22,7 @@ int cgen(TNODE *p) {
         fprintf(stderr, "warning: cgen call on null TNODE\n");
         return;
     }
+    printf("# %s\n", opdope[p->t_op].opstring);
     switch (p->t_op) {
         case TO_EQU:
             printf("\t.");
@@ -95,7 +96,24 @@ int cgen(TNODE *p) {
             printf(".L%d:\n", p->val.ln.t_con);
             break;
         case TO_CAST:
-            fprintf(stderr, "error: no cast\n");
+            if (p->t_mode & T_INT && p->val.in.t_left->t_mode & T_DOUBLE) {
+                if (p->val.in.t_left->t_op == TO_CON) {
+                } else {
+                    left(p->val.in.t_left);
+                    pop("eax");
+                    printf("\tfistp\t(%%eax)\n");
+                }
+            } else if (p->t_mode & T_DOUBLE && p->val.in.t_left->t_mode & T_INT) {
+                if (p->val.in.t_left->t_op == TO_CON) {
+                    printf("\tpushl\t$%d\n", p->val.in.t_left->val.ln.t_con);
+                    printf("\tfild\t(%%esp)\n");
+                    pop("eax");
+                } else {
+                    left(p->val.in.t_left);
+                    pop("eax");
+                    printf("\tfldl\t(%%eax)\n");
+                }
+            }
             break;
         case TO_FEND:
             printf("\tmovl\t%%ebp,%%esp\n");
@@ -131,8 +149,12 @@ int cgen(TNODE *p) {
         case TO_DEREF:
             left(p);
             printf("\tpopl\t%%eax\n");
-            printf("\tmovl\t(%%eax),%%edx\n");
-            push("edx");
+            if (p->t_mode & T_INT) {
+                printf("\tmovl\t(%%eax),%%edx\n");
+                push("edx");
+            } else if (p->t_mode & T_DOUBLE) {
+                printf("\tfldl\t(%%eax)\n");
+            }
             break;
         case TO_MINUS:
             left(p);
@@ -178,8 +200,6 @@ int cgen(TNODE *p) {
                 push("eax");
             } else if (p->t_mode & T_DOUBLE) {
                 instr("faddp");
-                printf("\tfstl\t(%%eax)\n");
-                push("eax");
             }
             break;
         case TO_MUL:
@@ -252,11 +272,15 @@ int cgen(TNODE *p) {
             } else if (p->val.ln.t_id->i_blevel > 2) {
                 printf("\tleal\t-%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset);
             }
+            // TODO: check this
+            push("eax");
+            /*
             if (p->t_mode & T_INT) {
                 push("eax");
             } else if (p->t_mode & T_DOUBLE) {
                 printf("\tfldl\t(%%eax)\n");
             }
+            */
             break;
         case TO_CON:
             printf("\tpushl\t$%d\n", p->val.ln.t_con);
@@ -273,7 +297,6 @@ int cgen(TNODE *p) {
                 pop("eax");
                 printf("\tfstl\t(%%eax)\n");
             }
-            pop("eax");
             break;
         case TO_ALLOC:
             printf("\t.comm\t%s,%d\n",
