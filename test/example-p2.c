@@ -21,9 +21,6 @@ int main() {
   }
   for (j = 0; j < 10; j = j + 1)
     printf("j is %d\n", j);
-/*
   return 0;
-*/
-
 }
 

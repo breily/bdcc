@@ -522,22 +522,6 @@ IDENT *fname(TWORD t, char *id) {
  * ftail - end of function body
  */
 void ftail(IDENT *p, BNODE *s, int m) {
-    /*
-    printf("s->b_label: %d\n", s->b_label);
-    BNODE *cp = s;
-    while (cp) {
-        if (cp->back.b_link)
-            printf("s->back.b_link->b_label: %d\n", cp->back.b_link->b_label);
-        cp = cp->back.b_link;
-    }
-    cp = s;
-    while (cp) {
-        if (cp->b_false)
-            printf("s->b_false->b_label: %d\n", cp->b_false->b_label);
-        cp = cp->b_false;
-    }
-    printf("m: %d\n", m);
-    */
     BNODE *last = s;
     while (last->back.b_link) last = last->back.b_link;
     if (last->b_label > 1) {
