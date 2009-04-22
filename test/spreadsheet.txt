@@ -19,7 +19,7 @@ test17                  0  /  2
 test18      pass        2  /  2
 test19      pass        2  /  2
 test20      pass        2  /  2
-test21                  0  /  2
+test21      pass        2  /  2
 test22      pass        2  /  2
 test23                  0  /  2
 test24                  0  /  2
@@ -34,4 +34,4 @@ bubblesort              0  /  6
 shellsort               0  /  6
 wc                      0  /  5
 cf                      0  /  8
-                       40  /  100
+                       42  /  100

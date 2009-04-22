@@ -51,6 +51,21 @@ int cgen(TNODE *p) {
             printf("\tpopl\t%%eax\n");
             printf("\tcmpl\t$0,%%eax\n");
             break;
+        case TO_CMPNE:
+            right(p);
+            left(p);
+            printf("\tmovl\t$0,%%ecx\n");
+            pop("eax");
+            pop("edx");
+            printf("\tcmpl\t%%eax,%%edx\n");
+            L_number++;
+            printf("\tje\tL0%d\n", L_number);
+            printf("\tincl\t%%ecx\n");
+            printf("L0%d:\n", L_number);
+            push("ecx");
+            pop("eax");
+            printf("\tcmpl\t$0,%%eax\n");
+            break;
         case TO_CMPGT:
             right(p);
             left(p);

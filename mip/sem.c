@@ -17,6 +17,8 @@ void yyerror(char *);
 IDENT *install(char *, int); 
 IDENT *lookup(char *, int); 
 
+BNODE *rel(int, TNODE *, TNODE *);
+
 /*
  * call - procedure invocation
  */
@@ -59,11 +61,12 @@ BNODE *ccand(BNODE *e1, int m, BNODE *e2) {
  * ccexpr - convert arithmetic expression to logical expression
  */
 BNODE *ccexpr(TNODE *e) {
-    fprintf(stderr, "warning: ccexpr called, but not implemented\n");
-    // TODO:
-    BNODE *b = (BNODE *) bnode();
-    b->b_label = labelno;
-    return b;
+    TNODE *zero = (TNODE *) tnode();
+    zero->t_op = TO_CON;
+    zero->t_mode = T_INT;
+    zero->val.ln.t_con = 0;
+
+    return (BNODE *) rel(TO_CMPNE, e, zero);
 }
 
 /*
