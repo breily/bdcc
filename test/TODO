@@ -1,4 +1,4 @@
-* Function arguments
+* Function arguments (I believe fixed, but more testing needed)
 * Double arithmetic
 * Comparison operators
 * &&, ||
@@ -9,7 +9,9 @@
 # Passing: test1 test5 test7 test9 test12 example-p1 example-p2
 
 # 12:30AM, Apr. 17: 12 passes (32/100 points)
-# Passing: test1 test3 test5 test7 test9 test12 test15 
-#          test18 test19 test20 example-p1 example-p2 
+# Passing: test1 test3 test5 test7 test9 test12 test15 test18
+#          test19 test20 example-p1 example-p2 
 
-
+# 2AM, Apr. 21: 16 passes (  /100 points)
+# Passing: test1 test2 test3 test5 test7 test9 test12 test15 test18
+#          test19 test20 test22 test25 test26 example-p1 example-p2
