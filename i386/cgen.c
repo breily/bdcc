@@ -267,8 +267,13 @@ int cgen(TNODE *p) {
             break;
         case TO_NAME:
             if (p->val.ln.t_id->i_blevel == 2) {
+                /* Globals */
                 printf("\tleal\t%s,%%eax\n", p->val.ln.t_id->i_name);
+            } else if (p->val.ln.t_id->i_scope > 0) {
+                /* Arguments */
+                printf("\tleal\t%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset + 4);
             } else if (p->val.ln.t_id->i_blevel > 2) {
+                /* Locals */
                 printf("\tleal\t-%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset);
             }
             // TODO: check this

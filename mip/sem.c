@@ -164,7 +164,7 @@ IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
             p->i_type = type;
             p->i_defined = 1;
             loff += p->i_width * 4;
-            p->i_offset = aoff + loff;
+            p->i_offset = loff;
         }
         return p;
     }
