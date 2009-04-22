@@ -22,7 +22,6 @@ int cgen(TNODE *p) {
         fprintf(stderr, "warning: cgen call on null TNODE\n");
         return;
     }
-    printf("# %s\n", opdope[p->t_op].opstring);
     switch (p->t_op) {
         case TO_EQU:
             printf("\t.");

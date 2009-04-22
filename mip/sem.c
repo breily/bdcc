@@ -4,8 +4,8 @@
 #include "ops.h"
 #include "tree.h"
 
-int aoff;			/* offset counter for arguments */
-int loff;			/* offset counter for locals */
+int aoff    = 0;	/* offset counter for arguments */
+int loff    = 0;	/* offset counter for locals */
 int labelno = 0;	/* global for generating labels */
 
 extern int level;
@@ -104,10 +104,23 @@ TNODE *con(int c) {
  * dcl - add attributes to declaration
  */
 IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
+    fprintf(stderr, "*** declare '%s'\n", name);
+    fprintf(stderr, "    type=%d, width=%d, scope=%d, level=%d\n", type, width, scope, level);
     if (scope == PARAM) {
-        printf("notice: param scope\n");
+        /* Arguments */
+        fprintf(stderr, "*** declare param '%s'\n", p->i_name);
+        fprintf(stderr, "    type=%d, width=%d, scope=%d\n", type, width, scope);
+        aoff += p->i_width * 4;
+        p->i_offset = aoff;
+        p->i_type = type;
+        p->i_scope = scope;
+        p->i_defined = 1;
+        p->i_blevel = level;
+        p->i_type = type;
+        return p;
     } else if (level == 2) {
         if (p == NULL) {
+            /* Globals */
             p = install(name, level);
             p->i_type = type;
             p->i_width = width;
@@ -115,6 +128,7 @@ IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
             p->i_scope = scope;
             p->i_defined = 0;
         } else {
+            /* Globals */
             p->i_type = type;
             p->i_defined = 1;
             TNODE *e = (TNODE *) tnode();
@@ -138,16 +152,19 @@ IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
         return p;
     } else if (level > 2) {
         if (p == NULL) {
-            loff += width * 4;
+            /* Locals and Arguments */
             p = install(name, level);
             p->i_type = type;
             p->i_width = width;
             p->i_blevel = level;
             p->i_scope = scope;
             p->i_defined = 0;
-            p->i_offset = loff;
         } else {
+            /* Locals */
             p->i_type = type;
+            p->i_defined = 1;
+            loff += p->i_width * 4;
+            p->i_offset = aoff + loff;
         }
         return p;
     }
@@ -489,6 +506,7 @@ IDENT *fhead(IDENT *p) {
 
     fprintf(stderr, "warning: function arguments and locals are not double aligned\n");
     // TODO: double align
+    fprintf(stderr, "aoff: %d, loff: %d\n", aoff, loff);
     TNODE *arg_size = con(aoff);
     TNODE *loc_size = con(loff);
 
@@ -578,7 +596,7 @@ TNODE *id(char *x) {
  * aindex - subscript
  */
 TNODE *aindex(TNODE *x, TNODE *i) {
-   printf("aindex not implemented\n");
+   fprintf(stderr, "aindex not implemented\n");
    return ((TNODE *) NULL);
 }
 
@@ -621,7 +639,7 @@ BNODE *n(void) {
  * op1 - unary operators
  */
 TNODE *op1(int op, TNODE *x) {
-   printf("op1 not implemented\n");
+   fprintf(stderr, "op1 not implemented\n");
    return ((TNODE *) NULL);
 }
 
@@ -777,7 +795,7 @@ TNODE *set(TNODE *x, TNODE *y) {
  * setaug1 - augmented arithmetic assignment operators
  */
 TNODE *setaug1(int op, TNODE *x, TNODE *y) {
-   printf("setaug not implemented\n");
+   fprintf(stderr, "setaug not implemented\n");
    return ((TNODE *) NULL);
 }
 
@@ -785,7 +803,7 @@ TNODE *setaug1(int op, TNODE *x, TNODE *y) {
  * setaug2 - augmented logical assignment operators
  */
 TNODE *setaug2(int op, TNODE *x, TNODE *y) {
-   printf("setaug not implemented\n");
+   fprintf(stderr, "setaug not implemented\n");
    return ((TNODE *) NULL);
 }
 
