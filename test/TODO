@@ -13,6 +13,3 @@
 #          test18 test19 test20 example-p1 example-p2 
 
 
-
-** Unexpectedly working:
-    * Multiple assignment ( a = b = 3 )
