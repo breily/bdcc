@@ -107,12 +107,14 @@ TNODE *con(int c) {
  * dcl - add attributes to declaration
  */
 IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
+    if (type & T_DOUBLE) width = width * 2;
     fprintf(stderr, "*** declare '%s'\n", name);
     fprintf(stderr, "    type=%d, width=%d, scope=%d, level=%d\n", type, width, scope, level);
     if (scope == PARAM) {
         /* Arguments */
         fprintf(stderr, "*** declare param '%s'\n", p->i_name);
         fprintf(stderr, "    type=%d, width=%d, scope=%d\n", type, width, scope);
+        if (type & T_DOUBLE) p->i_width = p->i_width * 2;
         aoff += p->i_width * 4;
         p->i_offset = aoff;
         p->i_type = type;
@@ -164,6 +166,7 @@ IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
             p->i_defined = 0;
         } else {
             /* Locals */
+            if (type & T_DOUBLE) p->i_width = p->i_width * 2;
             p->i_type = type;
             p->i_defined = 1;
             loff += p->i_width * 4;

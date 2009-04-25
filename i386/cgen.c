@@ -14,6 +14,23 @@ void pop(char *reg)  { printf("\tpopl\t%%%s\n", reg); }
 void push(char *reg) { printf("\tpushl\t%%%s\n", reg); }
 void instr(char *i)  { printf("\t%s\n", i); }
 
+int num_of_args(TNODE *p) {
+    TNODE *cp = p->val.in.t_right;
+    int args = 0;
+    while (cp) {
+        if (cp->val.in.t_left) args++;
+        if (cp->val.in.t_right) {
+            if (cp->val.in.t_right->t_op != TO_LIST) {
+                args++;
+                cp = NULL;
+            } else {
+                cp = cp->val.in.t_right;
+            }
+        }
+    }
+    return args;
+}
+
 /*
  * cgen - walk tree and emit code
  */
@@ -120,12 +137,12 @@ int cgen(TNODE *p) {
             } else if (p->t_mode & T_DOUBLE && p->val.in.t_left->t_mode & T_INT) {
                 if (p->val.in.t_left->t_op == TO_CON) {
                     printf("\tpushl\t$%d\n", p->val.in.t_left->val.ln.t_con);
-                    printf("\tfild\t(%%esp)\n");
+                    printf("\tfildl\t(%%esp)\n");
                     pop("eax");
                 } else {
                     left(p->val.in.t_left);
                     pop("eax");
-                    printf("\tfldl\t(%%eax)\n");
+                    printf("\tfildl\t(%%eax)\n");
                 }
             }
             break;
@@ -151,13 +168,21 @@ int cgen(TNODE *p) {
             break;
         case TO_LIST:
             right(p);
+            if (p->val.in.t_right->t_op == TO_DEREF && 
+                p->val.in.t_right->t_mode & T_DOUBLE) {
+                printf("\tfstpl\t(%%esp)\n");
+            }
             left(p);
+            if (p->val.in.t_left->t_op == TO_DEREF && 
+                p->val.in.t_left->t_mode & T_DOUBLE) {
+                printf("\tfstpl\t(%%esp)\n");
+            }
             break;
         case TO_CALL:
             right(p);
             printf("\tcall\t%s\n", p->val.in.t_left->val.ln.t_id->i_name);
-            // TODO: Change 8 to number of args * 4
-            printf("\taddl\t$8,%%esp\n");
+            // TODO: Agh this is frustrating - sometime necessary?
+            //printf("\taddl\t$%d,%%esp\n", num_of_args(p) * 4);
             push("eax");
             break;
         case TO_DEREF:
@@ -168,6 +193,9 @@ int cgen(TNODE *p) {
                 push("edx");
             } else if (p->t_mode & T_DOUBLE) {
                 printf("\tfldl\t(%%eax)\n");
+                // Should this go here?
+                // No?
+                //printf("\tfstpl\t(%%esp)\n");
             }
             break;
         case TO_MINUS:
@@ -286,7 +314,16 @@ int cgen(TNODE *p) {
                 printf("\tleal\t%s,%%eax\n", p->val.ln.t_id->i_name);
             } else if (p->val.ln.t_id->i_scope > 0) {
                 /* Arguments */
-                printf("\tleal\t%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset + 4);
+                /*
+                printf("\tleal\t%d(%%ebp),%%eax\n", 
+                    p->val.ln.t_id->i_offset + ((p->val.ln.t_id->i_width - 1) * 4)
+                );
+                */
+                if (p->t_mode & T_INT) {
+                    printf("\tleal\t%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset + 4);
+                } else if (p->t_mode & T_DOUBLE) {
+                    printf("\tleal\t%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset);
+                }
             } else if (p->val.ln.t_id->i_blevel > 2) {
                 /* Locals */
                 printf("\tleal\t-%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset);
@@ -314,7 +351,7 @@ int cgen(TNODE *p) {
                 push("eax");
             } else if (p->t_mode & T_DOUBLE) {
                 pop("eax");
-                printf("\tfstl\t(%%eax)\n");
+                printf("\tfstpl\t(%%eax)\n");
             }
             break;
         case TO_ALLOC:

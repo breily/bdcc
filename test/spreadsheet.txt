@@ -4,7 +4,7 @@ test3       pass        2  /  2
 test4a                  0  /  2
 test4b                  0  /  2
 test5       pass        2  /  2
-test6                   0  /  2
+test6       pass        2  /  2
 test7       pass        2  /  2
 test8                   0  /  2
 test9       pass        2  /  2
@@ -34,4 +34,4 @@ bubblesort              0  /  6
 shellsort               0  /  6
 wc                      0  /  5
 cf                      0  /  8
-                       42  /  100
+                       44  /  100
