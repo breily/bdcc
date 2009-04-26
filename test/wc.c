@@ -1,3 +1,7 @@
+/*
+ *  Fails due to ||
+ */
+
 main()
 {
    int c, nw, nl, nc;

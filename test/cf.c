@@ -1,3 +1,7 @@
+/*
+ *  Fails - Arrays, maybe more
+ */
+
 main()
 {
    int i, c, f[128], total;
