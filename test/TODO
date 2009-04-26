@@ -1,16 +1,16 @@
 8q.c: Fails - Who knows why, start with arrays.
-ackerman.c: Fails - Unknown
 bubblesort.c: Fails - Unknown, start with arrays
 shellsort.c: Fails - Unknown, start with arrays
 test11.c: Fails when adding double + integer.
 test13.c: Fails when adding double + integer.
 test16.c: Fails - && must not be working.
 test17.c: Fails - || must not be working.
-test25.c: Fails because the 'addl $x,%esp' after function calls is disabled.
-test26.c: Fails because the 'addl $x,%esp' after function calls is disabled.
+test6.s: Fails - Unknown (see note)
 test4a.c: Fails due to arrays.
 test4b.c: Fails due to arrays.
 test8.c: Fails as for some reason z takes on whatever value x is.
+wc.c: Fails due to ||
+cf.c: Fails - Arrays, maybe more
 
 # 1AM, Apr. 16: 7 passes (22/100 points)
 # Passing: test1 test5 test7 test9 test12 example-p1 example-p2
@@ -42,4 +42,18 @@ test8.c: Fails as for some reason z takes on whatever value x is.
 # Passing: test1 test2 test3 test5 test6 test7 test9 test10 test12
 #          test14 test15 test18 test19 test20 test21 test22 test23 
 #          test24 test27 example-p1 example-p2
-# Lost test25, test26
+# Retesting showed only 18 passes after some changes (emission of bnodes from n I think)
+
+# 5AM, Apr. 26: 20 passes (45/100 points)
+# Adding back in 'addl $x,%esp', and fixed bug in num_of_args
+# Passing: test1 test2 test3 test5 test6 test7 test9 test10 test12
+#          test14 test15 test19 test20 test21 test22 test23 test24
+#          test27 example-p1 ackerman
+# So the n bnodes are a problem (check what values they're generating) (or follow the
+# statement list to get the last label)
+
+# 5:10AM, Apr. 26: 23 passes (55/100 points)
+# Fix n bnode problems
+# Passing: test1 test2 test3 test5 test7 test9 test10 test12
+#          test14 test15 test18 test19 test20 test21 test22 test23 
+#          test24 test25 test26 test27 example-p1 example-p2 ackerman
