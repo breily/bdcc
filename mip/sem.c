@@ -108,12 +108,8 @@ TNODE *con(int c) {
  */
 IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
     if (type & T_DOUBLE) width = width * 2;
-    fprintf(stderr, "*** declare '%s'\n", name);
-    fprintf(stderr, "    type=%d, width=%d, scope=%d, level=%d\n", type, width, scope, level);
     if (scope == PARAM) {
         /* Arguments */
-        fprintf(stderr, "*** declare param '%s'\n", p->i_name);
-        fprintf(stderr, "    type=%d, width=%d, scope=%d\n", type, width, scope);
         if (type & T_DOUBLE) p->i_width = p->i_width * 2;
         aoff += p->i_width * 4;
         p->i_offset = aoff;
@@ -328,6 +324,32 @@ BNODE *doifelse(BNODE *e, int m1, BNODE *s1, BNODE *n, int m2, BNODE *s2) {
     equ2->val.in.t_right = l2;
     emittree(equ2);
 
+    // New
+    if (s2) {
+    fprintf(stderr, "n->b_label = %d\n", n->b_label);
+    TNODE *nn1 = (TNODE *) tnode();
+    nn1->t_op = TO_BLABEL;
+    nn1->val.ln.t_con = n->b_label;
+    TNODE *nn2 = (TNODE *) tnode();
+    nn2->t_op = TO_LABEL;
+    nn2->val.ln.t_con = s2->b_label;
+    /*
+    if (s2) {
+        fprintf(stderr, "s2->b_label = %d\n", s2->b_label);
+        nn2->val.ln.t_con = s2->b_label;
+    } else {
+        fprintf(stderr, "labelno = %d\n", labelno + 1);
+        nn2->val.ln.t_con = labelno + 1;
+    }
+    */
+    TNODE *eq3 = (TNODE *) tnode();
+    eq3->t_op = TO_EQU;
+    eq3->val.in.t_left = nn1;
+    eq3->val.in.t_right = nn2;
+    emittree(eq3);
+    }
+    // End New
+
     /*
     BNODE *cp = e;
     while (cp) {
@@ -510,9 +532,8 @@ IDENT *fhead(IDENT *p) {
     r->t_op = TO_LIST;
     r->t_mode = 0;
 
-    fprintf(stderr, "warning: function arguments and locals are not double aligned\n");
     // TODO: double align
-    fprintf(stderr, "aoff: %d, loff: %d\n", aoff, loff);
+    fprintf(stderr, "warning: function arguments and locals are not double aligned\n");
     TNODE *arg_size = con(aoff);
     TNODE *loc_size = con(loff);
 
@@ -656,8 +677,24 @@ TNODE *op_arith(int op, TNODE *x, TNODE *y) {
     TNODE *ret = (TNODE *) tnode();
     ret->t_op = op;
     ret->t_mode = promote(x, y);
-    ret->val.in.t_left = x;
-    ret->val.in.t_right = y;
+    if (ret->t_mode & T_DOUBLE && x->t_mode & T_INT) {
+        TNODE *nl = (TNODE *) tnode();
+        nl->t_op = TO_CAST;
+        nl->t_mode = T_DOUBLE;
+        nl->val.in.t_left = x;
+        ret->val.in.t_left = nl;
+    } else {
+        ret->val.in.t_left = x;
+    }
+    if (ret->t_mode & T_DOUBLE && y->t_mode & T_INT) {
+        TNODE *nr = (TNODE *) tnode();
+        nr->t_op = TO_CAST;
+        nr->t_mode = T_DOUBLE;
+        nr->val.in.t_left = y;
+        ret->val.in.t_left = nr;
+    } else {
+        ret->val.in.t_right = y;
+    }
     if (op == TO_DIV && y->t_op == TO_CON && y->val.ln.t_con == 0) {
         fprintf(stderr, "warning: division by zero\n");
     }
