@@ -1,4 +1,8 @@
 /*
+ *  Fails - && must not be working.
+ */
+
+/*
  * test16 - check to see if && works
  */
 main()

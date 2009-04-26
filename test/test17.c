@@ -1,4 +1,8 @@
 /*
+ *  Fails - || must not be working.
+ */
+
+/*
  * test17 - check to see if || works
  */
 main()

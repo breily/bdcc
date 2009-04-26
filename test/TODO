@@ -1,8 +1,16 @@
-* Function arguments (I believe fixed, but more testing needed)
-* Casting
-* Double arithmetic
-* &&, ||
-* Arrays
+8q.c: Fails - Who knows why, start with arrays.
+ackerman.c: Fails - Unknown
+bubblesort.c: Fails - Unknown, start with arrays
+shellsort.c: Fails - Unknown, start with arrays
+test11.c: Fails when adding double + integer.
+test13.c: Fails when adding double + integer.
+test16.c: Fails - && must not be working.
+test17.c: Fails - || must not be working.
+test25.c: Fails because the 'addl $x,%esp' after function calls is disabled.
+test26.c: Fails because the 'addl $x,%esp' after function calls is disabled.
+test4a.c: Fails due to arrays.
+test4b.c: Fails due to arrays.
+test8.c: Fails as for some reason z takes on whatever value x is.
 
 # 1AM, Apr. 16: 7 passes (22/100 points)
 # Passing: test1 test5 test7 test9 test12 example-p1 example-p2
@@ -28,3 +36,10 @@
 # Passing: test1 test2 test3 test5 test6 test7 test9 test12 test15 
 #          test18 test19 test20 test21 test22 test25 test26 example-p1 
 #          example-p2
+
+# 4AM, Apr. 26: 21 passes (50/100 points)
+# Various double stuff working, lots of little tweaks.
+# Passing: test1 test2 test3 test5 test6 test7 test9 test10 test12
+#          test14 test15 test18 test19 test20 test21 test22 test23 
+#          test24 test27 example-p1 example-p2
+# Lost test25, test26

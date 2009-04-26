@@ -8,11 +8,11 @@ test6       pass        2  /  2
 test7       pass        2  /  2
 test8                   0  /  2
 test9       pass        2  /  2
-test10                  0  /  2
+test10      pass        2  /  2
 test11                  0  /  2
 test12      pass        2  /  2
 test13                  0  /  2
-test14                  0  /  2
+test14      pass        2  /  2
 test15      pass        2  /  2
 test16                  0  /  2
 test17                  0  /  2
@@ -21,11 +21,11 @@ test19      pass        2  /  2
 test20      pass        2  /  2
 test21      pass        2  /  2
 test22      pass        2  /  2
-test23                  0  /  2
-test24                  0  /  2
-test25      pass        2  /  2
-test26      pass        2  /  2
-test27                  0  /  2
+test23      pass        2  /  2
+test24      pass        2  /  2
+test25      fail?       0  /  2
+test26      fail?       0  /  2
+test27      pass        2  /  2
 example-p1  pass        6  /  6
 example-p2  pass        6  /  6
 8q                      0  /  4
@@ -34,4 +34,4 @@ bubblesort              0  /  6
 shellsort               0  /  6
 wc                      0  /  5
 cf                      0  /  8
-                       44  /  100
+                       50  /  100

@@ -1,3 +1,7 @@
+/*
+ *  Fails - Unknown, start with arrays
+ */
+
 /*  SHELL SORT BENCHMARK PROGRAM:
 /*         This program sorts an array of integers by
 /*         comparing distant elements first and gradually
