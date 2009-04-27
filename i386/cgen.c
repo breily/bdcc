@@ -282,7 +282,7 @@ int cgen(TNODE *p) {
         case TO_PLUS:
             left(p);
             right(p);
-            if ((p->t_mode & T_INT) || (p->t_mode & T_PTR)) {
+            if ((p->t_mode & T_INT) || (p->t_mode & T_PTR) || (p->t_mode & T_ARRAY)) {
                 pop("eax");
                 pop("edx");
                 printf("\taddl\t%%edx,%%eax\n");
@@ -313,10 +313,15 @@ int cgen(TNODE *p) {
             break;
         case TO_LS:
             left(p);
-            right(p);
-            pop("ecx");
-            pop("eax");
-            printf("\tshl\t%%eax\n");
+            if (p->val.in.t_right->t_op == TO_CON) {
+                pop("eax");
+                printf("\tsall\t$%d,%%eax\n", p->val.in.t_right->val.ln.t_con);
+            } else {
+                right(p);
+                pop("ecx");
+                pop("eax");
+                printf("\tshll\t%%eax\n");
+            }
             push("eax");
             break;
         case TO_OR:
