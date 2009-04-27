@@ -3,11 +3,10 @@ bubblesort.c: Fails - Unknown, start with arrays
 shellsort.c: Fails - Unknown, start with arrays
 test11.c: Fails when adding double + integer.
 test13.c: Fails when adding double + integer.
-test17.c: Fails - || must not be working.
 test6.s: Fails - Unknown (see note)
 test4b.c: Fails due to arrays.
 test8.c: Fails as for some reason z takes on whatever value x is.
-wc.c: Fails due to ||
+wc.c: Fails - Unknown
 cf.c: Fails - Arrays, maybe more
 
 # 1AM, Apr. 16: 7 passes (22/100 points)
@@ -61,3 +60,8 @@ cf.c: Fails - Arrays, maybe more
 # Passing: test1 test2 test3 test4a test5 test7 test9 test10 test12
 #          test14 test15 test16 test18 test19 test20 test21 test22 test23 
 #          test24 test25 test26 test27 example-p1 example-p2 ackerman
+
+# 3AM, Apr. 27: 26 passes (61/100 points)
+# Passing: test1 test2 test3 test4a test5 test7 test9 test10 test12
+#          test14 test15 test16 test17 test18 test19 test20 test21 test22 
+#          test23 test24 test25 test26 test27 example-p1 example-p2 ackerman
