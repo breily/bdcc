@@ -30,32 +30,36 @@ for j in ${testfiles} ; do
 done
 
 #echo "Compiling wc"
-#${FE} -codegen <wc.c >wc.s
-#gcc -m32 -c in.c
-#gcc -m32 -o wc.exe wc.s in.o
-#./wc.exe <wc.c >wc.out
-#gcc ${GCCFLAGS} -o wc.exe1 wc.c in.c
-#./wc.exe1 <wc.c >wc.out1
-#if cmp wc.out wc.out1 ; then
-#  echo "wc executed correctly"
-#else
-#  echo "wc did NOT execute correctly"
-#  diff wc.out wc.out1
-#fi
+${FE} -codegen <wc.c >wc.s
+gcc -m32 -c in.c
+gcc -m32 -o wc.exe wc.s in.o
+./wc.exe <wc.c >wc.out
+gcc ${GCCFLAGS} -o wc.exe1 wc.c in.c
+./wc.exe1 <wc.c >wc.out1
+if cmp wc.out wc.out1 ; then
+  #echo "wc executed correctly"
+  echo "wc          pass"
+else
+  #echo "wc did NOT execute correctly"
+  echo "wc"
+  #diff wc.out wc.out1
+fi
 
 #echo "Compiling cf"
-#${FE} -codegen <cf.c >cf.s
-#gcc -m32 -c in.c
-#gcc -m32 -o cf.exe cf.s in.o
-#./cf.exe <cf.c >cf.out
-#gcc ${GCCFLAGS} -o cf.exe1 cf.c in.c
-#./cf.exe1 <cf.c >cf.out1
-#if cmp cf.out cf.out1 ; then
-#  echo "cf executed correctly"
-#else
-#  echo "cf did NOT execute correctly"
-#  diff cf.out cf.out1
-#fi
+${FE} -codegen <cf.c >cf.s
+gcc -m32 -c in.c
+gcc -m32 -o cf.exe cf.s in.o
+./cf.exe <cf.c >cf.out
+gcc ${GCCFLAGS} -o cf.exe1 cf.c in.c
+./cf.exe1 <cf.c >cf.out1
+if cmp cf.out cf.out1 ; then
+  #echo "cf executed correctly"
+  echo "cf          pass"
+else
+  #echo "cf did NOT execute correctly"
+  echo "cf"
+  #diff cf.out cf.out1
+fi
 
 rm -f *.exe *.exe1 *.out *.out1 *.s
 echo "================== End testing ${i} ======================="

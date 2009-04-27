@@ -1,8 +1,4 @@
 /*
- *  Fails due to arrays.
- */
-
-/*
  * test4 - test arrays (global)
  */
 int m[6];

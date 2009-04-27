@@ -1,8 +1,4 @@
 /*
- *  Fails because the 'addl $x,%esp' after function calls is disabled.
- */
-
-/*
  * test26 - check a function call that has nested calls
  */
 int foo (int a, int b)

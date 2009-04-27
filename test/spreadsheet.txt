@@ -1,7 +1,7 @@
 test1       pass        2  /  2
 test2       pass        2  /  2
 test3       pass        2  /  2
-test4a                  0  /  2
+test4a      pass        2  /  2
 test4b                  0  /  2
 test5       pass        2  /  2
 test6       fail        0  /  2
@@ -14,7 +14,7 @@ test12      pass        2  /  2
 test13                  0  /  2
 test14      pass        2  /  2
 test15      pass        2  /  2
-test16                  0  /  2
+test16      pass        2  /  2
 test17                  0  /  2
 test18      pass        2  /  2
 test19      pass        2  /  2
@@ -34,4 +34,4 @@ bubblesort              0  /  6
 shellsort               0  /  6
 wc                      0  /  5
 cf                      0  /  8
-                       55  /  100
+                       59  /  100
