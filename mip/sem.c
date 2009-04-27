@@ -324,6 +324,32 @@ BNODE *doif(BNODE *e, int m, BNODE *s) {
     equs_n++;
     }
 
+    /*  Just Added 4/27/09
+    BNODE *tmp = e;
+    int false_label = -1;
+    while (tmp) {
+        false_label = tmp->b_label;
+        tmp = tmp->b_false;
+    }
+    if (false_label != -1 && should_gen(false_label - 1)) {
+    TNODE *blx = (TNODE *) tnode();
+    blx->t_op = TO_BLABEL;
+    blx->val.ln.t_con = false_label - 1;
+    TNODE *lx = (TNODE *) tnode();
+    lx->t_op = TO_LABEL;
+    lx->val.ln.t_con = labelno + 1;
+    TNODE *equx = (TNODE *) tnode();
+    equx->t_op = TO_EQU;
+    equx->val.in.t_left = blx;
+    equx->val.in.t_right = lx;
+    emittree(equx);
+    
+    equs[equs_n] = false_label;
+    equs_n++;
+    }
+    */
+
+
     /*
     BNODE *cp = e;
     while (cp) {
@@ -394,13 +420,6 @@ BNODE *doifelse(BNODE *e, int m1, BNODE *s1, BNODE *n, int m2, BNODE *s2) {
     equs_n++;
     }
 
-    BNODE *tmp = e;
-    while (tmp) {
-        //printf("e->b_false = %d\n", tmp->b_label);
-        tmp = tmp->b_false;
-    }
-    //printf("m2 = %d\n", m2);
-
     if (should_gen(e->b_label)) {
     TNODE *blx = (TNODE *) tnode();
     blx->t_op = TO_BLABEL;
@@ -417,7 +436,6 @@ BNODE *doifelse(BNODE *e, int m1, BNODE *s1, BNODE *n, int m2, BNODE *s2) {
     equs[equs_n] = e->b_label;
     equs_n++;
     }
-
     if (should_gen(e->b_false->b_label - 1)) {
     TNODE *bl2 = (TNODE *) tnode();
     bl2->t_op = TO_BLABEL;

@@ -130,6 +130,21 @@ int cgen(TNODE *p) {
             printf("\tpopl\t%%eax\n");
             printf("\tcmpl\t$0,%%eax\n");
             break;
+        case TO_CMPLE:
+            right(p);
+            left(p);
+            printf("\tmovl\t$0,%%ecx\n");
+            printf("\tpopl\t%%edx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t%%eax,%%edx\n");
+            L_number++;
+            printf("\tjg\tL0%d\n", L_number);
+            printf("\tincl\t%%ecx\n");
+            printf("L0%d:\n", L_number);
+            printf("\tpushl\t%%ecx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t$0,%%eax\n");
+            break;
         case TO_CMPLT:
             right(p);
             left(p);
@@ -139,6 +154,21 @@ int cgen(TNODE *p) {
             printf("\tcmpl\t%%eax,%%edx\n");
             L_number++;
             printf("\tjge\tL0%d\n", L_number);
+            printf("\tincl\t%%ecx\n");
+            printf("L0%d:\n", L_number);
+            printf("\tpushl\t%%ecx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t$0,%%eax\n");
+            break;
+        case TO_CMPGE:
+            right(p);
+            left(p);
+            printf("\tmovl\t$0,%%ecx\n");
+            printf("\tpopl\t%%edx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t%%eax,%%edx\n");
+            L_number++;
+            printf("\tjl\tL0%d\n", L_number);
             printf("\tincl\t%%ecx\n");
             printf("L0%d:\n", L_number);
             printf("\tpushl\t%%ecx\n");
