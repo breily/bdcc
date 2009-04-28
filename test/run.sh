@@ -31,7 +31,7 @@ for j in ${testfiles} ; do
    rm -f ${j}.out ${j}.out1 ${j}.exe ${j}.exe1
 done
 
-#echo "Compiling wc"
+echo "Compiling wc"
 ${FE} -codegen <wc.c >wc.s
 gcc -m32 -c in.c
 gcc -m32 -o wc.exe wc.s in.o
@@ -39,15 +39,13 @@ gcc -m32 -o wc.exe wc.s in.o
 gcc ${GCCFLAGS} -o wc.exe1 wc.c in.c
 ./wc.exe1 <wc.c >wc.out1
 if cmp wc.out wc.out1 ; then
-  #echo "wc executed correctly"
   echo "wc          pass"
 else
-  #echo "wc did NOT execute correctly"
-  echo "wc"
-  #diff wc.out wc.out1
+  echo "wc fails"
+  diff wc.out wc.out1
 fi
 
-#echo "Compiling cf"
+echo "Compiling cf"
 ${FE} -codegen <cf.c >cf.s
 gcc -m32 -c in.c
 gcc -m32 -o cf.exe cf.s in.o
@@ -55,12 +53,10 @@ gcc -m32 -o cf.exe cf.s in.o
 gcc ${GCCFLAGS} -o cf.exe1 cf.c in.c
 ./cf.exe1 <cf.c >cf.out1
 if cmp cf.out cf.out1 ; then
-  #echo "cf executed correctly"
   echo "cf          pass"
 else
-  #echo "cf did NOT execute correctly"
-  echo "cf"
-  #diff cf.out cf.out1
+  echo "cf fails"
+  diff cf.out cf.out1
 fi
 
 rm -f *.exe *.exe1 *.out *.out1 *.s
