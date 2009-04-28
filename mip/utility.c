@@ -59,6 +59,7 @@ struct treeops opdope[] = {
 };
 
 int indent = 0;
+int in_assignment = 0;
 extern int codegen, showtree;
 
 BNODE *bnode(void);
@@ -89,6 +90,7 @@ void emittree (TNODE *n) {
 
    initcgen();
    if (showtree) printtree(n);
+   in_assignment = 0;
    if (codegen)  cgen(n);
    if (showtree) printf("\n");
 }

@@ -1012,7 +1012,7 @@ TNODE *op_arith(int op, TNODE *x, TNODE *y) {
         nr->t_op = TO_CAST;
         nr->t_mode = T_DOUBLE;
         nr->val.in.t_left = y;
-        ret->val.in.t_left = nr;
+        ret->val.in.t_right = nr;
     } else {
         ret->val.in.t_right = y;
     }
@@ -1106,7 +1106,7 @@ BNODE *rel(int op, TNODE *x, TNODE *y) {
         nr->t_op = TO_CAST;
         nr->t_mode = cmp_node->t_mode;
         nr->val.in.t_left = y;
-        cmp_node->val.in.t_left = nr;
+        cmp_node->val.in.t_right = nr;
     } else {
         cmp_node->val.in.t_right = y;
     }

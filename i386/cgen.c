@@ -5,6 +5,7 @@
 #include "tree.h"
 
 extern struct treeops opdope[];
+extern int in_assignment;
 
 int L_number = 0;
 
@@ -13,6 +14,12 @@ void right(TNODE *p) { cgen(p->val.in.t_right); }
 void pop(char *reg)  { printf("\tpopl\t%%%s\n", reg); }
 void push(char *reg) { printf("\tpushl\t%%%s\n", reg); }
 void instr(char *i)  { printf("\t%s\n", i); }
+
+int contains_assignment(TNODE *p) {
+    if (p->t_op == TO_ASSIGN) return 1;
+    if (p->val.in.t_right) return contains_assignment(p->val.in.t_right);
+    return 0;
+}
 
 int num_of_args(TNODE *p) {
     //fprintf(stderr, "start num_of_args\n");
@@ -275,7 +282,7 @@ int cgen(TNODE *p) {
                 printf("\tsubl\t%%eax,%%edx\n");    // TODO: register order?
                 push("edx");
             } else if (p->t_mode & T_DOUBLE) {
-                instr("fsubp");
+                instr("fsubrp");
             }
             break;
         case TO_DIV:
@@ -420,6 +427,7 @@ int cgen(TNODE *p) {
             break;
         case TO_ASSIGN:
             left(p);
+            if (contains_assignment(p->val.in.t_right)) in_assignment = 1;
             right(p);
             if (p->t_mode & T_INT) {
                 pop("eax");
@@ -428,7 +436,10 @@ int cgen(TNODE *p) {
                 push("eax");
             } else if (p->t_mode & T_DOUBLE) {
                 pop("eax");
-                printf("\tfstl\t(%%eax)\n");
+                if (in_assignment) 
+                    printf("\tfstl\t(%%eax)\n");
+                else
+                    printf("\tfstpl\t(%%eax)\n");
             }
             break;
         case TO_ALLOC:
