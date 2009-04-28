@@ -184,10 +184,18 @@ int cgen(TNODE *p) {
                     } else {
                         left(p);
                     }
-                    pop("eax");
-                    printf("\tfldl\t(%%eax)\n");
-                    printf("\tsubl\t$4,%%esp\n");
-                    printf("\tfistpl\t(%%esp)\n");
+                    if (p->val.in.t_left->t_op == TO_PLUS ||
+                            p->val.in.t_left->t_op == TO_MINUS ||
+                            p->val.in.t_left->t_op == TO_DIV ||
+                            p->val.in.t_left->t_op == TO_MUL) {
+                        printf("\tsubl\t$4,%%esp\n");
+                        printf("\tfistpl\t(%%esp)\n");
+                    } else {
+                        pop("eax");
+                        printf("\tfldl\t(%%eax)\n");
+                        printf("\tsubl\t$4,%%esp\n");
+                        printf("\tfistpl\t(%%esp)\n");
+                    }
                 }
             } else if (p->t_mode & T_DOUBLE && p->val.in.t_left->t_mode & T_INT) {
                 if (p->val.in.t_left->t_op == TO_CON) {

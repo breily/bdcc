@@ -1,8 +1,4 @@
 /*
- *  Fails as for some reason z takes on whatever value x is.
- */
-
-/*
  * test8 - test function call with arguments
  */
 test5(int x, double y, int z)

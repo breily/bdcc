@@ -6,6 +6,9 @@ test13.c: Fails when adding double + integer.
 test4b.c: Fails due to double arrays.
 cf.c: Fails - Unknown
 
+* Calls to printf with single TO_STRING nodes ('printf("sdf")') get
+  the wrong number of args (add 8 to %esp, should add 4)
+
 # 1AM, Apr. 16: 7 passes (22/100 points)
 # Passing: test1 test5 test7 test9 test12 example-p1 example-p2
 
@@ -43,8 +46,6 @@ cf.c: Fails - Unknown
 # Passing: test1 test2 test3 test5 test6 test7 test9 test10 test12
 #          test14 test15 test19 test20 test21 test22 test23 test24
 #          test27 example-p1 ackerman
-# So the n bnodes are a problem (check what values they're generating) (or follow the
-# statement list to get the last label)
 
 # 5:10AM, Apr. 26: 23 passes (55/100 points)
 # Fix n bnode problems

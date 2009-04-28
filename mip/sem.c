@@ -1091,11 +1091,25 @@ TNODE *op_neg(TNODE *x) {
 BNODE *rel(int op, TNODE *x, TNODE *y) {
     TNODE *cmp_node = (TNODE *) tnode();
     cmp_node->t_op = op;
-    // TODO: cast
-    fprintf(stderr, "warning: no casting is done for rel ops\n");
-    cmp_node->t_mode = x->t_mode;
-    cmp_node->val.in.t_left = x;
-    cmp_node->val.in.t_right = y;
+    cmp_node->t_mode = promote(x, y);
+    if (cmp_node->t_mode & T_DOUBLE && x->t_mode & T_INT) {
+        TNODE *nl = (TNODE *) tnode();
+        nl->t_op = TO_CAST;
+        nl->t_mode = cmp_node->t_mode;
+        nl->val.in.t_left = x;
+        cmp_node->val.in.t_left = nl;
+    } else {
+        cmp_node->val.in.t_left = x;
+    }
+    if (cmp_node->t_mode & T_DOUBLE && y->t_mode & T_INT) {
+        TNODE *nr = (TNODE *) tnode();
+        nr->t_op = TO_CAST;
+        nr->t_mode = cmp_node->t_mode;
+        nr->val.in.t_left = y;
+        cmp_node->val.in.t_left = nr;
+    } else {
+        cmp_node->val.in.t_right = y;
+    }
 
     TNODE *bl_node = (TNODE *) tnode();
     bl_node->t_op = TO_BLABEL;

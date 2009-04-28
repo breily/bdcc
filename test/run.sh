@@ -21,17 +21,13 @@ for j in ${testfiles} ; do
    gcc ${GCCFLAGS} -m32 -o ${j}.exe1 ${j}.c
    ./${j}.exe1 >${j}.out1
    if cmp ${j}.out ${j}.out1 ; then
-      #echo "${j} executed correctly"
         echo "${j}          pass"
    else
-      #echo "${j} did NOT execute correctly"
         echo "${j}"
-#      diff ${j}.out ${j}.out1
    fi
    rm -f ${j}.out ${j}.out1 ${j}.exe ${j}.exe1
 done
 
-echo "Compiling wc"
 ${FE} -codegen <wc.c >wc.s
 gcc -m32 -c in.c
 gcc -m32 -o wc.exe wc.s in.o
@@ -45,7 +41,6 @@ else
   diff wc.out wc.out1
 fi
 
-echo "Compiling cf"
 ${FE} -codegen <cf.c >cf.s
 gcc -m32 -c in.c
 gcc -m32 -o cf.exe cf.s in.o
