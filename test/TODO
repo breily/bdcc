@@ -3,8 +3,8 @@ bubblesort.c: Fails - Unknown, start with arrays
 shellsort.c: Fails - Unknown, start with arrays
 test11.c: Fails when adding double + integer.
 test13.c: Fails when adding double + integer.
-test4b.c: Fails due to arrays.
-cf.c: Fails - Arrays, maybe more
+test4b.c: Fails due to double arrays.
+cf.c: Fails - Unknown
 
 # 1AM, Apr. 16: 7 passes (22/100 points)
 # Passing: test1 test5 test7 test9 test12 example-p1 example-p2

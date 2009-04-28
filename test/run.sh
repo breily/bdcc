@@ -56,7 +56,7 @@ if cmp cf.out cf.out1 ; then
   echo "cf          pass"
 else
   echo "cf fails"
-  diff cf.out cf.out1
+  #diff cf.out cf.out1
 fi
 
 rm -f *.exe *.exe1 *.out *.out1 *.s

@@ -297,47 +297,63 @@ IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
  * dofor - for statement
  */
 BNODE *dofor(TNODE *e1, int m1, BNODE *e2, int m2, TNODE *e3, BNODE *n, int m3, BNODE *s) {
-    int lbl1, lbl2;
-    BNODE *cp = e2;
-    while (cp->back.b_true) cp = cp->back.b_true;
-    lbl1 = cp->b_label - 1;
-
-    cp = e2;
-    while (cp->b_false) cp = cp->b_false;
-    lbl2 = cp->b_label + 1;
-
-    if (should_gen(lbl1)) {
-    TNODE *bl_eq1 = (TNODE *) tnode();
-    bl_eq1->t_op = TO_BLABEL;
-    bl_eq1->val.ln.t_con = lbl1;
-    TNODE *l_eq1 = (TNODE *) tnode();
-    l_eq1->t_op = TO_LABEL;
-    l_eq1->val.ln.t_con = m3;
-    TNODE *eq1 = (TNODE *) tnode();
-    eq1->t_op = TO_EQU;
-    eq1->val.in.t_left = bl_eq1;
-    eq1->val.in.t_right = l_eq1;
-    emittree(eq1);
-
-    equs[equs_n] = lbl1;
-    equs_n++;
+#if debug
+    BNODE *a;
+    printf("# --> start dofor info\n");
+    printf("# m1 = %d\n", m1);
+    if (e2) {
+        printf("# e2->b_label = %d\n", e2->b_label);
+        a = e2->back.b_true;
+        while (a) {
+            printf("# e2->back.b_true = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+        a = e2->b_false;
+        while (a) {
+            printf("# e2->b_false = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
     }
+    printf("# m2 = %d\n", m2);
+    if (n) {
+        printf("# n->b_label = %d\n", n->b_label);
+        a = n->back.b_link;
+        while (a) {
+            printf("# n->back.b_link = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    printf("# m3 = %d\n", m3);
+    if (s) {
+        printf("# s->b_label = %d\n", s->b_label);
+        a = s->back.b_link;
+        while (a) {
+            printf("# s->back.b_link = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    printf("# labelno = %d\n", labelno);
+#endif
 
-    if (should_gen(lbl2)) {
-    TNODE *bl_eq2 = (TNODE *) tnode();
-    bl_eq2->t_op = TO_BLABEL;
-    bl_eq2->val.ln.t_con = lbl2;
-    TNODE *l_eq2 = (TNODE *) tnode();
-    l_eq2->t_op = TO_LABEL;
-    l_eq2->val.ln.t_con = m1;
-    TNODE *eq2 = (TNODE *) tnode();
-    eq2->t_op = TO_EQU;
-    eq2->val.in.t_left = bl_eq2;
-    eq2->val.in.t_right = l_eq2;
-    emittree(eq2);
+    BNODE *cp = e2->back.b_true;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *tbl = (TNODE *) tnode();
+            tbl->t_op = TO_BLABEL;
+            tbl->val.ln.t_con = cp->b_label - 1;
+            TNODE *tl = (TNODE *) tnode();
+            tl->t_op = TO_LABEL;
+            tl->val.ln.t_con = m3;
+            TNODE *tequ = (TNODE *) tnode();
+            tequ->t_op = TO_EQU;
+            tequ->val.in.t_left = tbl;
+            tequ->val.in.t_right = tl;
+            emittree(tequ);
 
-    equs[equs_n] = lbl2;
-    equs_n++;
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
     }
 
     TNODE *jmp_l = (TNODE *) tnode();
@@ -348,6 +364,49 @@ BNODE *dofor(TNODE *e1, int m1, BNODE *e2, int m2, TNODE *e3, BNODE *n, int m3, 
     jmp->t_mode = T_INT;
     jmp->val.in.t_left = jmp_l;
     emittree(jmp);
+
+    m();
+
+    cp = e2->b_false;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *fbl = (TNODE *) tnode();
+            fbl->t_op = TO_BLABEL;
+            fbl->val.ln.t_con = cp->b_label - 1; // + 1 ?
+            TNODE *fl = (TNODE *) tnode();
+            fl->t_op = TO_LABEL;
+            fl->val.ln.t_con = labelno;
+            TNODE *fequ = (TNODE *) tnode();
+            fequ->t_op = TO_EQU;
+            fequ->val.in.t_left = fbl;
+            fequ->val.in.t_right = fl;
+            emittree(fequ);
+
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
+    }
+
+    while (n) {
+        if (should_gen(n->b_label)) {
+            TNODE *nbl = (TNODE *) tnode();
+            nbl->t_op = TO_BLABEL;
+            nbl->val.ln.t_con = n->b_label;
+            TNODE *nl = (TNODE *) tnode();
+            nl->t_op = TO_LABEL;
+            nl->val.ln.t_con = m1;
+            TNODE *nequ = (TNODE *) tnode();
+            nequ->t_op = TO_EQU;
+            nequ->val.in.t_left = nbl;
+            nequ->val.in.t_right = nl;
+            emittree(nequ);
+
+            equs[equs_n] = n->b_label;
+            equs_n++;
+        }
+        n = n->back.b_link;
+    }
 
     if (s) backpatch(s->back.b_link, m2);
     backpatch(e2->back.b_true, m2);
@@ -672,14 +731,10 @@ BNODE *dowhile(int m1, BNODE *e, int m2, BNODE *s) {
             a = a->back.b_link;
         }
     }
+    printf("# labelno = %d\n", labelno);
+    printf("# <-- end dowhile info\n");
 #endif
  
-    BNODE *scp = s;
-    while (scp) {
-        if (scp->back.b_link) scp = scp->back.b_link;
-        else break;
-    }
-
     BNODE *cp = e->back.b_true;
     while (cp) {
         if (should_gen(cp->b_label - 1)) {
@@ -700,24 +755,6 @@ BNODE *dowhile(int m1, BNODE *e, int m2, BNODE *s) {
         }
         cp = cp->back.b_link;
     }
-    /*
-    if (should_gen(m1 + 1)) {
-    TNODE *bl = (TNODE *) tnode();
-    bl->t_op = TO_BLABEL;
-    bl->val.ln.t_con = m1 + 1;
-    TNODE *l0 = (TNODE *) tnode();
-    l0->t_op = TO_LABEL;
-    l0->val.ln.t_con = m2;
-    TNODE *equ = (TNODE *) tnode();
-    equ->t_op = TO_EQU;
-    equ->val.in.t_left = bl;
-    equ->val.in.t_right = l0;
-    emittree(equ);
-
-    equs[equs_n] = m1 + 1;
-    equs_n++;
-    }
-    */
 
     TNODE *l1 = (TNODE *) tnode();
     l1->t_op = TO_LABEL;
@@ -727,6 +764,29 @@ BNODE *dowhile(int m1, BNODE *e, int m2, BNODE *s) {
     j->t_mode = T_INT;
     j->val.in.t_left = l1;
     emittree(j);
+
+    m();
+
+    cp = e->b_false;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *bl = (TNODE *) tnode();
+            bl->t_op = TO_BLABEL;
+            bl->val.ln.t_con = cp->b_label - 1;
+            TNODE *l0 = (TNODE *) tnode();
+            l0->t_op = TO_LABEL;
+            l0->val.ln.t_con = labelno;
+            TNODE *equ = (TNODE *) tnode();
+            equ->t_op = TO_EQU;
+            equ->val.in.t_left = bl;
+            equ->val.in.t_right = l0;
+            emittree(equ);
+
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
+    }
 
     backpatch(s->back.b_link, m1);
     backpatch(e->back.b_true, m2);
