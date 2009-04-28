@@ -242,13 +242,21 @@ int cgen(TNODE *p) {
             break;
         case TO_LIST:
             right(p);
-            if (p->val.in.t_right->t_op == TO_DEREF && 
+            if ((p->val.in.t_right->t_op == TO_DEREF ||
+                 p->val.in.t_right->t_op == TO_PLUS ||
+                 p->val.in.t_right->t_op == TO_MINUS ||
+                 p->val.in.t_right->t_op == TO_DIV ||
+                 p->val.in.t_right->t_op == TO_MUL) && 
                 p->val.in.t_right->t_mode & T_DOUBLE) {
                 printf("\tsubl\t$8,%%esp\n");
                 printf("\tfstpl\t(%%esp)\n");
             }
             left(p);
-            if (p->val.in.t_left->t_op == TO_DEREF && 
+            if ((p->val.in.t_right->t_op == TO_DEREF ||
+                 p->val.in.t_right->t_op == TO_PLUS ||
+                 p->val.in.t_right->t_op == TO_MINUS ||
+                 p->val.in.t_right->t_op == TO_DIV ||
+                 p->val.in.t_right->t_op == TO_MUL) && 
                 p->val.in.t_left->t_mode & T_DOUBLE) {
                 printf("\tfstpl\t(%%esp)\n");
             }

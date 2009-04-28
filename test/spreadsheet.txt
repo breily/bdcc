@@ -33,5 +33,5 @@ ackerman    pass        3  /  3
 bubblesort              0  /  6
 shellsort               0  /  6
 wc          pass        5  /  5
-cf                      0  /  8
-                       74  /  100
+cf                      8  /  8
+                       82  /  100
