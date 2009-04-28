@@ -14,21 +14,6 @@ void pop(char *reg)  { printf("\tpopl\t%%%s\n", reg); }
 void push(char *reg) { printf("\tpushl\t%%%s\n", reg); }
 void instr(char *i)  { printf("\t%s\n", i); }
 
-int contains_double(TNODE *p) {
-    if (!p) return 0;
-    if (p->val.in.t_left) {
-        if (p->val.in.t_left->t_op == TO_DEREF && p->val.in.t_left->t_mode & T_DOUBLE) 
-            return 1;
-    }
-    if (p->val.in.t_right) {
-        if (p->val.in.t_right->t_op == TO_DEREF && p->val.in.t_right->t_mode & T_DOUBLE) 
-            return 1;
-    }
-    if (p->val.in.t_left && p->val.in.t_left->t_op == TO_LIST)
-        return contains_double(p->val.in.t_left);
-    return 0;
-}
-
 int num_of_args(TNODE *p) {
     //fprintf(stderr, "start num_of_args\n");
     TNODE *cp = p->val.in.t_right;
@@ -244,10 +229,8 @@ int cgen(TNODE *p) {
             right(p);
             if (p->val.in.t_right->t_op == TO_DEREF && 
                 p->val.in.t_right->t_mode & T_DOUBLE) {
+                printf("\tsubl\t$8,%%esp\n");
                 printf("\tfstpl\t(%%esp)\n");
-                if (contains_double(p->val.in.t_left)) {
-                    printf("\tsubl\t$8,%%esp\n");
-                }
             }
             left(p);
             if (p->val.in.t_left->t_op == TO_DEREF && 
