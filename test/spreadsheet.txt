@@ -2,7 +2,7 @@ test1       pass        2  /  2
 test2       pass        2  /  2
 test3       pass        2  /  2
 test4a      pass        2  /  2
-test4b                  0  /  2
+test4b      pass        2  /  2
 test5       pass        2  /  2
 test6       pass        2  /  2
 test7       pass        2  /  2
@@ -33,5 +33,5 @@ ackerman    pass        3  /  3
 bubblesort              0  /  6
 shellsort               0  /  6
 wc          pass        5  /  5
-cf                      8  /  8
-                       82  /  100
+cf          pass        8  /  8
+                       84  /  100

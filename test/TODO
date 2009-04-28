@@ -1,7 +1,6 @@
 8q.c: Fails - Who knows why, start with arrays.
 bubblesort.c: Fails - Unknown, start with arrays
 shellsort.c: Fails - Unknown, start with arrays
-test4b.c: Fails due to double arrays.
 
 * Calls to printf with single TO_STRING nodes ('printf("sdf")') get
   the wrong number of args (add 8 to %esp, should add 4)
@@ -91,4 +90,11 @@ test4b.c: Fails due to double arrays.
 # Passing: test1 test2 test3 test4a test5 test6 test7 test8 test9 test10 test11 
 #          test12 test13 test14 test15 test16 test17 test18 test19 test20 test21 
 #          test22 test23 test24 test25 test26 test27 example-p1 example-p2 
+#          ackerman wc cf
+
+# 6AM, Apr. 28: 33 passes (84/100 points)
+# 8q still looping infinitely
+# Passing: test1 test2 test3 test4a test4b test5 test6 test7 test8 test9 test10 
+#          test11 test12 test13 test14 test15 test16 test17 test18 test19 test20 
+#          test21 test22 test23 test24 test25 test26 test27 example-p1 example-p2 
 #          ackerman wc cf

@@ -242,7 +242,8 @@ int cgen(TNODE *p) {
             break;
         case TO_LIST:
             right(p);
-            if ((p->val.in.t_right->t_op == TO_DEREF ||
+            if (p->val.in.t_right &&
+                (p->val.in.t_right->t_op == TO_DEREF ||
                  p->val.in.t_right->t_op == TO_PLUS ||
                  p->val.in.t_right->t_op == TO_MINUS ||
                  p->val.in.t_right->t_op == TO_DIV ||
@@ -252,17 +253,27 @@ int cgen(TNODE *p) {
                 printf("\tfstpl\t(%%esp)\n");
             }
             left(p);
-            if ((p->val.in.t_right->t_op == TO_DEREF ||
-                 p->val.in.t_right->t_op == TO_PLUS ||
-                 p->val.in.t_right->t_op == TO_MINUS ||
-                 p->val.in.t_right->t_op == TO_DIV ||
-                 p->val.in.t_right->t_op == TO_MUL) && 
+            if (p->val.in.t_left &&
+                (p->val.in.t_left->t_op == TO_DEREF ||
+                 p->val.in.t_left->t_op == TO_PLUS ||
+                 p->val.in.t_left->t_op == TO_MINUS ||
+                 p->val.in.t_left->t_op == TO_DIV ||
+                 p->val.in.t_left->t_op == TO_MUL) && 
                 p->val.in.t_left->t_mode & T_DOUBLE) {
                 printf("\tfstpl\t(%%esp)\n");
             }
             break;
         case TO_CALL:
             right(p);
+            if (p->val.in.t_right &&
+                (p->val.in.t_right->t_op == TO_DEREF ||
+                p->val.in.t_right->t_op == TO_PLUS ||
+                p->val.in.t_right->t_op == TO_MINUS ||
+                p->val.in.t_right->t_op == TO_DIV ||
+                p->val.in.t_right->t_op == TO_MUL) &&
+                p->val.in.t_right->t_mode & T_DOUBLE) {
+                    printf("\tfstpl\t(%%esp)\n");
+            }
             printf("\tcall\t%s\n", p->val.in.t_left->val.ln.t_id->i_name);
             // TODO: Agh this is frustrating - sometime necessary?
             printf("\taddl\t$%d,%%esp\n", num_of_args(p) * 4);
