@@ -32,6 +32,6 @@ example-p2  pass        6  /  6
 ackerman    pass        3  /  3
 bubblesort              0  /  6
 shellsort               0  /  6
-wc                      0  /  5
+wc                      5  /  5
 cf                      0  /  8
-                       65  /  100
+                       70  /  100
