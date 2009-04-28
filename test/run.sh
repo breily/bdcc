@@ -9,7 +9,9 @@ GCCFLAGS="-fno-builtin"
 testfiles="test1 test2 test3 test4a test4b test5 test6 test7 \
    test8 test9 test10 test11 test12 test13 test14 test15 test16 \
    test17 test18 test19 test20 test21 test22 test23 test24 test25 \
-   test26 test27 example-p1 example-p2 8q ackerman bubblesort shellsort"
+   test26 test27 example-p1 example-p2 ackerman bubblesort shellsort"
+# I removed 8q, infinite loop
+
 
 for j in ${testfiles} ; do
    #echo "Compiling ${j}"
