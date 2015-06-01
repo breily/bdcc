@@ -1,3 +1,7 @@
+/*
+ *  Fails - Who knows why, start with arrays.
+ */
+
 int up[16];
 int down[16];
 int rows[8];

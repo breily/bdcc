@@ -1,4 +1,8 @@
 /*
+ *  Fails when adding double + integer.
+ */
+
+/*
  * test13 - check to see if op2 works
  */
 main()

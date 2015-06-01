@@ -59,6 +59,7 @@ struct treeops opdope[] = {
 };
 
 int indent = 0;
+int in_assignment = 0;
 extern int codegen, showtree;
 
 BNODE *bnode(void);
@@ -89,6 +90,7 @@ void emittree (TNODE *n) {
 
    initcgen();
    if (showtree) printtree(n);
+   in_assignment = 0;
    if (codegen)  cgen(n);
    if (showtree) printf("\n");
 }
@@ -211,22 +213,6 @@ int promote(TNODE *l, TNODE *r) {
     return T_INT;
 }
 
-/*
-void backpatch_true(BNODE *b, int m) {
-    while (b) {
-        b->b_label = m;
-        b = b->back.b_true;
-    }
-}
-
-void backpatch_false(BNODE *b, int m) {
-    while (b) {
-        b->b_label = m;
-        b = b->b_false;
-    }
-}
-*/
-
 void backpatch(BNODE *b, int m) {
     while (b) {
         b->b_label = m;
@@ -238,7 +224,16 @@ BNODE *merge(BNODE *a, BNODE *b) {
     if (!b) return a;
     if (!a) return b;
     BNODE *c = a;
-    while (c->back.b_link) c = c->back.b_link;
+    printf("# --> start merge info\n");
+    while (c) {
+        printf("# a->b_label = %d\n", c->b_label);
+        if (c->back.b_link) c = c->back.b_link;
+        else break;
+    }
     c->back.b_link = b;
-    return c;
+    while (b) {
+        printf("# b->b_label = %d\n", b->b_label);
+        b = b->back.b_link;
+    }
+    return a;
 }

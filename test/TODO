@@ -1,17 +1,100 @@
-* Function arguments (I believe fixed, but more testing needed)
-* Double arithmetic
-* Comparison operators
-* &&, ||
-* Casting
-* Arrays
+8q.c: Fails - Who knows why, start with arrays.
+bubblesort.c: Fails - Unknown, start with arrays
+shellsort.c: Fails - Unknown, start with arrays
+
+* Calls to printf with single TO_STRING nodes ('printf("sdf")') get
+  the wrong number of args (add 8 to %esp, should add 4)
 
 # 1AM, Apr. 16: 7 passes (22/100 points)
 # Passing: test1 test5 test7 test9 test12 example-p1 example-p2
 
 # 12:30AM, Apr. 17: 12 passes (32/100 points)
+# Fixed last EQU generation
 # Passing: test1 test3 test5 test7 test9 test12 test15 test18
 #          test19 test20 example-p1 example-p2 
 
-# 2AM, Apr. 21: 16 passes (  /100 points)
+# 2AM, Apr. 21: 16 passes (40/100 points)
+# Fixed function arguments
 # Passing: test1 test2 test3 test5 test7 test9 test12 test15 test18
 #          test19 test20 test22 test25 test26 example-p1 example-p2
+
+# 4PM, Apr. 22: 17 passes (42/100 points)
+# Fixed ccexpr
+# Passing: test1 test2 test3 test5 test7 test9 test12 test15 test18
+#          test19 test20 test21 test22 test25 test26 example-p1 
+#          example-p2
+
+# 2AM, Apr. 25: 18 passes (44/100 points)
+# Some double stuff working, but not very well
+# Passing: test1 test2 test3 test5 test6 test7 test9 test12 test15 
+#          test18 test19 test20 test21 test22 test25 test26 example-p1 
+#          example-p2
+
+# 4AM, Apr. 26: 21 passes (50/100 points)
+# Various double stuff working, lots of little tweaks.
+# Passing: test1 test2 test3 test5 test6 test7 test9 test10 test12
+#          test14 test15 test18 test19 test20 test21 test22 test23 
+#          test24 test27 example-p1 example-p2
+# Retesting showed only 18 passes after some changes (emission of bnodes from n I think)
+
+# 5AM, Apr. 26: 20 passes (45/100 points)
+# Adding back in 'addl $x,%esp', and fixed bug in num_of_args
+# Passing: test1 test2 test3 test5 test6 test7 test9 test10 test12
+#          test14 test15 test19 test20 test21 test22 test23 test24
+#          test27 example-p1 ackerman
+
+# 5:10AM, Apr. 26: 23 passes (55/100 points)
+# Fix n bnode problems
+# Passing: test1 test2 test3 test5 test7 test9 test10 test12
+#          test14 test15 test18 test19 test20 test21 test22 test23 
+#          test24 test25 test26 test27 example-p1 example-p2 ackerman
+# Work on ARRAYS tomorrow
+
+# 1:30AM, Apr. 27: 25 passes (59/100 points)
+# Passing: test1 test2 test3 test4a test5 test7 test9 test10 test12
+#          test14 test15 test16 test18 test19 test20 test21 test22 test23 
+#          test24 test25 test26 test27 example-p1 example-p2 ackerman
+
+# 3AM, Apr. 27: 26 passes (61/100 points)
+# Passing: test1 test2 test3 test4a test5 test7 test9 test10 test12
+#          test14 test15 test16 test17 test18 test19 test20 test21 test22 
+#          test23 test24 test25 test26 test27 example-p1 example-p2 ackerman
+
+# 1AM, Apr. 28: 28 passes (65/100 points)
+# Note: 8q now loops infinitely :(
+# Passing: test1 test2 test3 test4a test5 test6 test7 test8 test9 test10 test12
+#          test14 test15 test16 test17 test18 test19 test20 test21 test22 
+#          test23 test24 test25 test26 test27 example-p1 example-p2 ackerman
+
+# 2AM, Apr. 28: 29 passes (70/100 points)
+# 8q still looping infinitely
+# Passing: test1 test2 test3 test4a test5 test6 test7 test8 test9 test10 test12
+#          test14 test15 test16 test17 test18 test19 test20 test21 test22 
+#          test23 test24 test25 test26 test27 example-p1 example-p2 ackerman wc
+
+# 4:50AM, Apr. 28: 30 passes (72/100 points)
+# 8q still looping infinitely
+# Passing: test1 test2 test3 test4a test5 test6 test7 test8 test9 test10 test11 
+#          test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 
+#          test23 test24 test25 test26 test27 example-p1 example-p2 ackerman wc
+
+# 5:30AM, Apr. 28: 31 passes (74/100 points)
+# 8q still looping infinitely
+# Passing: test1 test2 test3 test4a test5 test6 test7 test8 test9 test10 test11 
+#          test12 test13 test14 test15 test16 test17 test18 test19 test20 test21 
+#          test22 test23 test24 test25 test26 test27 example-p1 example-p2 
+#          ackerman wc
+
+# 5:35AM, Apr. 28: 32 passes (82/100 points)
+# 8q still looping infinitely
+# Passing: test1 test2 test3 test4a test5 test6 test7 test8 test9 test10 test11 
+#          test12 test13 test14 test15 test16 test17 test18 test19 test20 test21 
+#          test22 test23 test24 test25 test26 test27 example-p1 example-p2 
+#          ackerman wc cf
+
+# 6AM, Apr. 28: 33 passes (84/100 points)
+# 8q still looping infinitely
+# Passing: test1 test2 test3 test4a test4b test5 test6 test7 test8 test9 test10 
+#          test11 test12 test13 test14 test15 test16 test17 test18 test19 test20 
+#          test21 test22 test23 test24 test25 test26 test27 example-p1 example-p2 
+#          ackerman wc cf

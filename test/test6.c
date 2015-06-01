@@ -1,4 +1,8 @@
 /*
+ *  Somehow fails immediately after the test3() call.
+ */
+
+/*
  * test6 - test function with parameters
  */
 test3(int a, double b)

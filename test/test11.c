@@ -1,4 +1,8 @@
 /*
+ *  Fails when adding double + integer.
+ */
+
+/*
  * test11 - check to see if casting works
  */
 main()

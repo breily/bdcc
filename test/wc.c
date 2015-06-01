@@ -1,3 +1,7 @@
+/*
+ *  Fails due to having a triple || - I need to patch them  together somehow.
+ */
+
 main()
 {
    int c, nw, nl, nc;

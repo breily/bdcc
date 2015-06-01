@@ -5,6 +5,7 @@
 #include "tree.h"
 
 extern struct treeops opdope[];
+extern int in_assignment;
 
 int L_number = 0;
 
@@ -14,6 +15,45 @@ void pop(char *reg)  { printf("\tpopl\t%%%s\n", reg); }
 void push(char *reg) { printf("\tpushl\t%%%s\n", reg); }
 void instr(char *i)  { printf("\t%s\n", i); }
 
+int contains_assignment(TNODE *p) {
+    if (p->t_op == TO_ASSIGN) return 1;
+    if (p->val.in.t_right) return contains_assignment(p->val.in.t_right);
+    return 0;
+}
+
+int num_of_args(TNODE *p) {
+    //fprintf(stderr, "start num_of_args\n");
+    TNODE *cp = p->val.in.t_right;
+    int args = 0;
+    while (cp != NULL) {
+        //fprintf(stderr, "\tloop, args=%d\n", args);
+        if (cp->val.in.t_left) {
+            //fprintf(stderr, "\t\tleft is not null, args++\n");
+            if (cp->val.in.t_left->t_mode & T_DOUBLE) 
+                args += 2;
+            else {
+                args += 1;
+            }
+        }
+        if (cp->val.in.t_right) {
+            if (cp->val.in.t_right->t_op == TO_LIST) {
+                cp = cp->val.in.t_right;
+            } else {
+                //fprintf(stderr, "\tright is  args=%d\n", args);
+                if (cp->val.in.t_right->t_mode & T_DOUBLE) 
+                    args += 2;
+                else {
+                    args += 1;
+                }
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+    return args;
+}
+
 /*
  * cgen - walk tree and emit code
  */
@@ -22,6 +62,7 @@ int cgen(TNODE *p) {
         fprintf(stderr, "warning: cgen call on null TNODE\n");
         return;
     }
+    //printf("# %s BEGIN\n", opdope[p->t_op].opstring);
     switch (p->t_op) {
         case TO_EQU:
             printf("\t.");
@@ -51,6 +92,21 @@ int cgen(TNODE *p) {
             printf("\tpopl\t%%eax\n");
             printf("\tcmpl\t$0,%%eax\n");
             break;
+        case TO_CMPNE:
+            right(p);
+            left(p);
+            printf("\tmovl\t$0,%%ecx\n");
+            pop("eax");
+            pop("edx");
+            printf("\tcmpl\t%%eax,%%edx\n");
+            L_number++;
+            printf("\tje\tL0%d\n", L_number);
+            printf("\tincl\t%%ecx\n");
+            printf("L0%d:\n", L_number);
+            push("ecx");
+            pop("eax");
+            printf("\tcmpl\t$0,%%eax\n");
+            break;
         case TO_CMPGT:
             right(p);
             left(p);
@@ -66,6 +122,21 @@ int cgen(TNODE *p) {
             printf("\tpopl\t%%eax\n");
             printf("\tcmpl\t$0,%%eax\n");
             break;
+        case TO_CMPLE:
+            right(p);
+            left(p);
+            printf("\tmovl\t$0,%%ecx\n");
+            printf("\tpopl\t%%edx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t%%eax,%%edx\n");
+            L_number++;
+            printf("\tjg\tL0%d\n", L_number);
+            printf("\tincl\t%%ecx\n");
+            printf("L0%d:\n", L_number);
+            printf("\tpushl\t%%ecx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t$0,%%eax\n");
+            break;
         case TO_CMPLT:
             right(p);
             left(p);
@@ -75,6 +146,21 @@ int cgen(TNODE *p) {
             printf("\tcmpl\t%%eax,%%edx\n");
             L_number++;
             printf("\tjge\tL0%d\n", L_number);
+            printf("\tincl\t%%ecx\n");
+            printf("L0%d:\n", L_number);
+            printf("\tpushl\t%%ecx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t$0,%%eax\n");
+            break;
+        case TO_CMPGE:
+            right(p);
+            left(p);
+            printf("\tmovl\t$0,%%ecx\n");
+            printf("\tpopl\t%%edx\n");
+            printf("\tpopl\t%%eax\n");
+            printf("\tcmpl\t%%eax,%%edx\n");
+            L_number++;
+            printf("\tjl\tL0%d\n", L_number);
             printf("\tincl\t%%ecx\n");
             printf("L0%d:\n", L_number);
             printf("\tpushl\t%%ecx\n");
@@ -97,20 +183,40 @@ int cgen(TNODE *p) {
         case TO_CAST:
             if (p->t_mode & T_INT && p->val.in.t_left->t_mode & T_DOUBLE) {
                 if (p->val.in.t_left->t_op == TO_CON) {
+                    fprintf(stderr, "error: constant with type double found (%d)\n",
+                        p->val.in.t_left->val.ln.t_con);
                 } else {
-                    left(p->val.in.t_left);
-                    pop("eax");
-                    printf("\tfistp\t(%%eax)\n");
+                    if (p->val.in.t_left->t_op == TO_DEREF) {
+                        left(p->val.in.t_left);
+                    } else {
+                        left(p);
+                    }
+                    if (p->val.in.t_left->t_op == TO_PLUS ||
+                            p->val.in.t_left->t_op == TO_MINUS ||
+                            p->val.in.t_left->t_op == TO_DIV ||
+                            p->val.in.t_left->t_op == TO_MUL) {
+                        printf("\tsubl\t$4,%%esp\n");
+                        printf("\tfistpl\t(%%esp)\n");
+                    } else {
+                        pop("eax");
+                        printf("\tfldl\t(%%eax)\n");
+                        printf("\tsubl\t$4,%%esp\n");
+                        printf("\tfistpl\t(%%esp)\n");
+                    }
                 }
             } else if (p->t_mode & T_DOUBLE && p->val.in.t_left->t_mode & T_INT) {
                 if (p->val.in.t_left->t_op == TO_CON) {
                     printf("\tpushl\t$%d\n", p->val.in.t_left->val.ln.t_con);
-                    printf("\tfild\t(%%esp)\n");
+                    printf("\tfildl\t(%%esp)\n");
                     pop("eax");
                 } else {
-                    left(p->val.in.t_left);
+                    if (p->val.in.t_left->t_op == TO_DEREF) {
+                        left(p->val.in.t_left);
+                    } else {
+                        left(p);
+                    }
                     pop("eax");
-                    printf("\tfldl\t(%%eax)\n");
+                    printf("\tfildl\t(%%eax)\n");
                 }
             }
             break;
@@ -136,13 +242,41 @@ int cgen(TNODE *p) {
             break;
         case TO_LIST:
             right(p);
+            if (p->val.in.t_right &&
+                (p->val.in.t_right->t_op == TO_DEREF ||
+                 p->val.in.t_right->t_op == TO_PLUS ||
+                 p->val.in.t_right->t_op == TO_MINUS ||
+                 p->val.in.t_right->t_op == TO_DIV ||
+                 p->val.in.t_right->t_op == TO_MUL) && 
+                p->val.in.t_right->t_mode & T_DOUBLE) {
+                printf("\tsubl\t$8,%%esp\n");
+                printf("\tfstpl\t(%%esp)\n");
+            }
             left(p);
+            if (p->val.in.t_left &&
+                (p->val.in.t_left->t_op == TO_DEREF ||
+                 p->val.in.t_left->t_op == TO_PLUS ||
+                 p->val.in.t_left->t_op == TO_MINUS ||
+                 p->val.in.t_left->t_op == TO_DIV ||
+                 p->val.in.t_left->t_op == TO_MUL) && 
+                p->val.in.t_left->t_mode & T_DOUBLE) {
+                printf("\tfstpl\t(%%esp)\n");
+            }
             break;
         case TO_CALL:
             right(p);
+            if (p->val.in.t_right &&
+                (p->val.in.t_right->t_op == TO_DEREF ||
+                p->val.in.t_right->t_op == TO_PLUS ||
+                p->val.in.t_right->t_op == TO_MINUS ||
+                p->val.in.t_right->t_op == TO_DIV ||
+                p->val.in.t_right->t_op == TO_MUL) &&
+                p->val.in.t_right->t_mode & T_DOUBLE) {
+                    printf("\tfstpl\t(%%esp)\n");
+            }
             printf("\tcall\t%s\n", p->val.in.t_left->val.ln.t_id->i_name);
-            // TODO: Change 8 to number of args * 4
-            printf("\taddl\t$8,%%esp\n");
+            // TODO: Agh this is frustrating - sometime necessary?
+            printf("\taddl\t$%d,%%esp\n", num_of_args(p) * 4);
             push("eax");
             break;
         case TO_DEREF:
@@ -153,6 +287,9 @@ int cgen(TNODE *p) {
                 push("edx");
             } else if (p->t_mode & T_DOUBLE) {
                 printf("\tfldl\t(%%eax)\n");
+                // Should this go here?
+                // No?
+                //printf("\tfstpl\t(%%esp)\n");
             }
             break;
         case TO_MINUS:
@@ -164,7 +301,7 @@ int cgen(TNODE *p) {
                 printf("\tsubl\t%%eax,%%edx\n");    // TODO: register order?
                 push("edx");
             } else if (p->t_mode & T_DOUBLE) {
-                instr("fsubp");
+                instr("fsubrp");
             }
             break;
         case TO_DIV:
@@ -192,7 +329,7 @@ int cgen(TNODE *p) {
         case TO_PLUS:
             left(p);
             right(p);
-            if ((p->t_mode & T_INT) || (p->t_mode & T_PTR)) {
+            if ((p->t_mode & T_INT) || (p->t_mode & T_PTR) || (p->t_mode & T_ARRAY)) {
                 pop("eax");
                 pop("edx");
                 printf("\taddl\t%%edx,%%eax\n");
@@ -223,10 +360,15 @@ int cgen(TNODE *p) {
             break;
         case TO_LS:
             left(p);
-            right(p);
-            pop("ecx");
-            pop("eax");
-            printf("\tshl\t%%eax\n");
+            if (p->val.in.t_right->t_op == TO_CON) {
+                pop("eax");
+                printf("\tsall\t$%d,%%eax\n", p->val.in.t_right->val.ln.t_con);
+            } else {
+                right(p);
+                pop("ecx");
+                pop("eax");
+                printf("\tshll\t%%eax\n");
+            }
             push("eax");
             break;
         case TO_OR:
@@ -255,9 +397,13 @@ int cgen(TNODE *p) {
             break;
         case TO_NEGATE:
             left(p);
-            pop("eax");
-            printf("\tneg\t%%eax\n");
-            push("eax");
+            if (p->t_mode & T_INT) {
+                pop("eax");
+                printf("\tneg\t%%eax\n");
+                push("eax");
+            } else if (p->t_mode & T_DOUBLE) {
+                printf("\tfchs\n");
+            }
             break;
         case TO_COMP:
             left(p);
@@ -271,7 +417,16 @@ int cgen(TNODE *p) {
                 printf("\tleal\t%s,%%eax\n", p->val.ln.t_id->i_name);
             } else if (p->val.ln.t_id->i_scope > 0) {
                 /* Arguments */
-                printf("\tleal\t%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset + 4);
+                /*
+                printf("\tleal\t%d(%%ebp),%%eax\n", 
+                    p->val.ln.t_id->i_offset + ((p->val.ln.t_id->i_width - 1) * 4)
+                );
+                */
+                if (p->t_mode & T_INT) {
+                    printf("\tleal\t%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset + 4);
+                } else if (p->t_mode & T_DOUBLE) {
+                    printf("\tleal\t%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset);
+                }
             } else if (p->val.ln.t_id->i_blevel > 2) {
                 /* Locals */
                 printf("\tleal\t-%d(%%ebp),%%eax\n", p->val.ln.t_id->i_offset);
@@ -291,6 +446,7 @@ int cgen(TNODE *p) {
             break;
         case TO_ASSIGN:
             left(p);
+            if (contains_assignment(p->val.in.t_right)) in_assignment = 1;
             right(p);
             if (p->t_mode & T_INT) {
                 pop("eax");
@@ -299,7 +455,10 @@ int cgen(TNODE *p) {
                 push("eax");
             } else if (p->t_mode & T_DOUBLE) {
                 pop("eax");
-                printf("\tfstl\t(%%eax)\n");
+                if (in_assignment) 
+                    printf("\tfstl\t(%%eax)\n");
+                else
+                    printf("\tfstpl\t(%%eax)\n");
             }
             break;
         case TO_ALLOC:
@@ -325,6 +484,7 @@ int cgen(TNODE *p) {
             fprintf(stderr, "warning: cgen not implemented for '%s'\n",
                 opdope[p->t_op].opstring);
     }
+    //printf("# %s END\n", opdope[p->t_op].opstring);
     return 0;
 }
 

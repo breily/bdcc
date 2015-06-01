@@ -1,4 +1,8 @@
 /*
+ *  Fails due to arrays.
+ */
+
+/*
  * test4 - arrays with doubles
  */
 double m[6];

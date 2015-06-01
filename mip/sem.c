@@ -1,3 +1,5 @@
+#define debug 1
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "cc.h"
@@ -16,6 +18,19 @@ void yyerror(char *);
 
 IDENT *install(char *, int); 
 IDENT *lookup(char *, int); 
+
+BNODE *rel(int, TNODE *, TNODE *);
+
+int equs[1024];
+int equs_n = 0;
+
+int should_gen(int x) {
+    int i;
+    for (i = 0; i < equs_n; i++) {
+        if (equs[i] == x) return 0;
+    }
+    return 1;
+}
 
 /*
  * call - procedure invocation
@@ -47,6 +62,61 @@ TNODE *call(char *f, TNODE *args) {
  * ccand - logical and
  */
 BNODE *ccand(BNODE *e1, int m, BNODE *e2) {
+#if debug
+    BNODE *a;
+    fprintf(stdout, "# --> start ccand info\n");
+    if (e1) {
+        printf("# e1->b_label = %d\n", e1->b_label);
+        a = e1->back.b_true;
+        while (a) {
+            fprintf(stdout, "# e1->back.b_true = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+        a = e1->b_false;
+        while (a) {
+            fprintf(stdout, "# e1->b_false = %d\n", a->b_label);
+            a = a->back.b_true;
+        }
+    }
+    fprintf(stdout,  "# m = %d\n", m);
+    if (e2) {
+        printf("# e2->b_label = %d\n", e2->b_label);
+        a = e2->back.b_true;
+        while (a) {
+            fprintf(stdout, "# e2->back.b_true = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+        a = e2->b_false;
+        while (a) {
+            fprintf(stdout, "# e2->b_false = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    fprintf(stdout, "# labelno = %d\n", labelno);
+    fprintf(stdout, "# --> end ccand info\n");
+#endif
+
+    BNODE *cp = e1->back.b_true;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *bl_eq1 = (TNODE *) tnode();
+            bl_eq1->t_op = TO_BLABEL;
+            bl_eq1->val.ln.t_con = cp->b_label - 1;
+            TNODE *l_eq1 = (TNODE *) tnode();
+            l_eq1->t_op = TO_LABEL;
+            l_eq1->val.ln.t_con = m;
+            TNODE *eq1 = (TNODE *) tnode();
+            eq1->t_op = TO_EQU;
+            eq1->val.in.t_left = bl_eq1;
+            eq1->val.in.t_right = l_eq1;
+            emittree(eq1);
+
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
+    }
+
     backpatch(e1->back.b_true, m);
     BNODE *b = (BNODE *) bnode();
     b->b_label = labelno;
@@ -59,11 +129,12 @@ BNODE *ccand(BNODE *e1, int m, BNODE *e2) {
  * ccexpr - convert arithmetic expression to logical expression
  */
 BNODE *ccexpr(TNODE *e) {
-    fprintf(stderr, "warning: ccexpr called, but not implemented\n");
-    // TODO:
-    BNODE *b = (BNODE *) bnode();
-    b->b_label = labelno;
-    return b;
+    TNODE *zero = (TNODE *) tnode();
+    zero->t_op = TO_CON;
+    zero->t_mode = T_INT;
+    zero->val.ln.t_con = 0;
+
+    return (BNODE *) rel(TO_CMPNE, e, zero);
 }
 
 /*
@@ -81,6 +152,61 @@ BNODE *ccnot(BNODE *e) {
  * ccor - logical or
  */
 BNODE *ccor(BNODE *e1, int m, BNODE *e2) {
+#if debug
+    BNODE *a;
+    fprintf(stdout, "# --> start ccor info\n");
+    if (e1) {
+        printf("# e1->b_label = %d\n", e1->b_label);
+        a = e1->back.b_true;
+        while (a) {
+            fprintf(stdout, "# e1->back.b_true = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+        a = e1->b_false;
+        while (a) {
+            fprintf(stdout, "# e1->b_false = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    fprintf(stdout,  "# m = %d\n", m);
+    if (e2) {
+        printf("# e2->b_label = %d\n", e2->b_label);
+        a = e2->back.b_true;
+        while (a) {
+            fprintf(stdout, "# e2->back.b_true = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+        a = e2->b_false;
+        while (a) {
+            fprintf(stdout, "# e2->b_false = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    fprintf(stdout, "# labelno = %d\n", labelno);
+    fprintf(stdout, "# --> end ccor info\n");
+#endif
+
+    BNODE *cp = e1->b_false;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *bl_eq1 = (TNODE *) tnode();
+            bl_eq1->t_op = TO_BLABEL;
+            bl_eq1->val.ln.t_con = cp->b_label - 1;
+            TNODE *l_eq1 = (TNODE *) tnode();
+            l_eq1->t_op = TO_LABEL;
+            l_eq1->val.ln.t_con = m;
+            TNODE *eq1 = (TNODE *) tnode();
+            eq1->t_op = TO_EQU;
+            eq1->val.in.t_left = bl_eq1;
+            eq1->val.in.t_right = l_eq1;
+            emittree(eq1);
+
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
+    }
+    
     backpatch(e1->b_false, m);
     BNODE *b = (BNODE *) bnode();
     b->b_label = labelno;
@@ -104,32 +230,28 @@ TNODE *con(int c) {
  * dcl - add attributes to declaration
  */
 IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
-    fprintf(stderr, "*** declare '%s'\n", name);
-    fprintf(stderr, "    type=%d, width=%d, scope=%d, level=%d\n", type, width, scope, level);
     if (scope == PARAM) {
         /* Arguments */
-        fprintf(stderr, "*** declare param '%s'\n", p->i_name);
-        fprintf(stderr, "    type=%d, width=%d, scope=%d\n", type, width, scope);
+        if (type & T_DOUBLE) p->i_width = p->i_width * 2;
         aoff += p->i_width * 4;
         p->i_offset = aoff;
-        p->i_type = type;
+        p->i_type |= type;
         p->i_scope = scope;
         p->i_defined = 1;
         p->i_blevel = level;
-        p->i_type = type;
         return p;
     } else if (level == 2) {
         if (p == NULL) {
             /* Globals */
             p = install(name, level);
-            p->i_type = type;
+            p->i_type |= type;
             p->i_width = width;
             p->i_blevel = level;
             p->i_scope = scope;
             p->i_defined = 0;
         } else {
             /* Globals */
-            p->i_type = type;
+            p->i_type |= type;
             p->i_defined = 1;
             TNODE *e = (TNODE *) tnode();
             e->t_op = TO_ALLOC;
@@ -154,14 +276,15 @@ IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
         if (p == NULL) {
             /* Locals and Arguments */
             p = install(name, level);
-            p->i_type = type;
+            p->i_type |= type;
             p->i_width = width;
             p->i_blevel = level;
             p->i_scope = scope;
             p->i_defined = 0;
         } else {
             /* Locals */
-            p->i_type = type;
+            if (type & T_DOUBLE) p->i_width = p->i_width * 2;
+            p->i_type |= type;
             p->i_defined = 1;
             loff += p->i_width * 4;
             p->i_offset = loff;
@@ -174,38 +297,64 @@ IDENT *dcl(IDENT *p, char *name, int type, int width, int scope) {
  * dofor - for statement
  */
 BNODE *dofor(TNODE *e1, int m1, BNODE *e2, int m2, TNODE *e3, BNODE *n, int m3, BNODE *s) {
-    int lbl1, lbl2;
-    BNODE *cp = e2;
-    while (cp->back.b_true) cp = cp->back.b_true;
-    lbl1 = cp->b_label - 1;
+#if debug
+    BNODE *a;
+    printf("# --> start dofor info\n");
+    printf("# m1 = %d\n", m1);
+    if (e2) {
+        printf("# e2->b_label = %d\n", e2->b_label);
+        a = e2->back.b_true;
+        while (a) {
+            printf("# e2->back.b_true = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+        a = e2->b_false;
+        while (a) {
+            printf("# e2->b_false = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    printf("# m2 = %d\n", m2);
+    if (n) {
+        printf("# n->b_label = %d\n", n->b_label);
+        a = n->back.b_link;
+        while (a) {
+            printf("# n->back.b_link = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    printf("# m3 = %d\n", m3);
+    if (s) {
+        printf("# s->b_label = %d\n", s->b_label);
+        a = s->back.b_link;
+        while (a) {
+            printf("# s->back.b_link = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    printf("# labelno = %d\n", labelno);
+#endif
 
-    cp = e2;
-    while (cp->b_false) cp = cp->b_false;
-    lbl2 = cp->b_label + 1;
+    BNODE *cp = e2->back.b_true;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *tbl = (TNODE *) tnode();
+            tbl->t_op = TO_BLABEL;
+            tbl->val.ln.t_con = cp->b_label - 1;
+            TNODE *tl = (TNODE *) tnode();
+            tl->t_op = TO_LABEL;
+            tl->val.ln.t_con = m3;
+            TNODE *tequ = (TNODE *) tnode();
+            tequ->t_op = TO_EQU;
+            tequ->val.in.t_left = tbl;
+            tequ->val.in.t_right = tl;
+            emittree(tequ);
 
-    TNODE *bl_eq1 = (TNODE *) tnode();
-    bl_eq1->t_op = TO_BLABEL;
-    bl_eq1->val.ln.t_con = lbl1;
-    TNODE *l_eq1 = (TNODE *) tnode();
-    l_eq1->t_op = TO_LABEL;
-    l_eq1->val.ln.t_con = m3;
-    TNODE *eq1 = (TNODE *) tnode();
-    eq1->t_op = TO_EQU;
-    eq1->val.in.t_left = bl_eq1;
-    eq1->val.in.t_right = l_eq1;
-    emittree(eq1);
-
-    TNODE *bl_eq2 = (TNODE *) tnode();
-    bl_eq2->t_op = TO_BLABEL;
-    bl_eq2->val.ln.t_con = lbl2;
-    TNODE *l_eq2 = (TNODE *) tnode();
-    l_eq2->t_op = TO_LABEL;
-    l_eq2->val.ln.t_con = m1;
-    TNODE *eq2 = (TNODE *) tnode();
-    eq2->t_op = TO_EQU;
-    eq2->val.in.t_left = bl_eq2;
-    eq2->val.in.t_right = l_eq2;
-    emittree(eq2);
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
+    }
 
     TNODE *jmp_l = (TNODE *) tnode();
     jmp_l->t_op = TO_LABEL;
@@ -215,6 +364,49 @@ BNODE *dofor(TNODE *e1, int m1, BNODE *e2, int m2, TNODE *e3, BNODE *n, int m3, 
     jmp->t_mode = T_INT;
     jmp->val.in.t_left = jmp_l;
     emittree(jmp);
+
+    m();
+
+    cp = e2->b_false;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *fbl = (TNODE *) tnode();
+            fbl->t_op = TO_BLABEL;
+            fbl->val.ln.t_con = cp->b_label - 1; // + 1 ?
+            TNODE *fl = (TNODE *) tnode();
+            fl->t_op = TO_LABEL;
+            fl->val.ln.t_con = labelno;
+            TNODE *fequ = (TNODE *) tnode();
+            fequ->t_op = TO_EQU;
+            fequ->val.in.t_left = fbl;
+            fequ->val.in.t_right = fl;
+            emittree(fequ);
+
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
+    }
+
+    while (n) {
+        if (should_gen(n->b_label)) {
+            TNODE *nbl = (TNODE *) tnode();
+            nbl->t_op = TO_BLABEL;
+            nbl->val.ln.t_con = n->b_label;
+            TNODE *nl = (TNODE *) tnode();
+            nl->t_op = TO_LABEL;
+            nl->val.ln.t_con = m1;
+            TNODE *nequ = (TNODE *) tnode();
+            nequ->t_op = TO_EQU;
+            nequ->val.in.t_left = nbl;
+            nequ->val.in.t_right = nl;
+            emittree(nequ);
+
+            equs[equs_n] = n->b_label;
+            equs_n++;
+        }
+        n = n->back.b_link;
+    }
 
     if (s) backpatch(s->back.b_link, m2);
     backpatch(e2->back.b_true, m2);
@@ -229,67 +421,85 @@ BNODE *dofor(TNODE *e1, int m1, BNODE *e2, int m2, TNODE *e3, BNODE *n, int m3, 
 /*
  * doif - one-arm if statement
  */
-BNODE *doif(BNODE *e, int m, BNODE *s) {
-    TNODE *bl = (TNODE *) tnode();
-    bl->t_op = TO_BLABEL;
-    bl->val.ln.t_con = e->back.b_true->b_label - 1;
-
-    TNODE *l = (TNODE *) tnode();
-    l->t_op = TO_LABEL;
-    l->val.ln.t_con = m;
-
-    TNODE *equ = (TNODE *) tnode();
-    equ->t_op = TO_EQU;
-    equ->val.in.t_left = bl;
-    equ->val.in.t_right = l;
-
-    emittree(equ);
-
-    /*
-    BNODE *cp = e;
-    while (cp) {
-        printf("doif (b_true): e label = %d\n", cp->b_label);
-        cp = cp->back.b_true;
+BNODE *doif(BNODE *e, int m1, BNODE *s) {
+#if debug
+    BNODE *a;
+    fprintf(stdout, "# --> start doif info\n");
+    if (e) {
+        printf("# e->b_label = %d\n", e->b_label);
+        a = e->back.b_true;
+        while (a) {
+            fprintf(stdout, "# e->back.b_true = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+        a = e->b_false;
+        while (a) {
+            fprintf(stdout, "# e->b_false = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
     }
-    cp = e;
-    while (cp) {
-        printf("doif (b_false): e label = %d\n", cp->b_label);
-        cp = cp->b_false;
+    printf("# m = %d\n", m1);
+    if (s) {
+        printf("# s->b_label = %d\n", s->b_label);
+        a = s->back.b_link;
+        while (a) {
+            fprintf(stdout, "# s->back.b_link = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
     }
-    cp = s;
+    printf("# labelno = %d\n", labelno);
+    printf("# --> end doif info\n");
+#endif
+
+    BNODE *cp = e->back.b_true;
     while (cp) {
-        printf("doif: s label = %d\n", cp->b_label);
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *bl = (TNODE *) tnode();
+            bl->t_op = TO_BLABEL;
+            bl->val.ln.t_con = cp->b_label - 1;
+            TNODE *l = (TNODE *) tnode();
+            l->t_op = TO_LABEL;
+            l->val.ln.t_con = m1;
+            TNODE *equ = (TNODE *) tnode();
+            equ->t_op = TO_EQU;
+            equ->val.in.t_left = bl;
+            equ->val.in.t_right = l;
+            emittree(equ);
+
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
         cp = cp->back.b_link;
     }
-    printf("doif m: %d\n", m);
-    printf("patching...\n");
-    */
 
-    backpatch(e->back.b_true, m);
+    m();
 
+    cp = e->b_false;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *bl = (TNODE *) tnode();
+            bl->t_op = TO_BLABEL;
+            bl->val.ln.t_con = cp->b_label - 1;
+            TNODE *l = (TNODE *) tnode();
+            l->t_op = TO_LABEL;
+            l->val.ln.t_con = labelno;
+            TNODE *equ = (TNODE *) tnode();
+            equ->t_op = TO_EQU;
+            equ->val.in.t_left = bl;
+            equ->val.in.t_right = l;
+            emittree(equ);
+
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
+    }
+
+    backpatch(e->back.b_true, m1);
     BNODE *b = (BNODE *) bnode();
-    b->b_label = m;
+    b->b_label = m1;
     if (s) { b->back.b_link = (BNODE *) merge(e->b_false, s->back.b_link); }
     else { b->back.b_link = (BNODE *) merge(e->b_false, (BNODE *) NULL); }
-
-    /*
-    cp = e;
-    while (cp) {
-        printf("doif (b_true): e label = %d\n", cp->b_label);
-        cp = cp->back.b_true;
-    }
-    cp = e;
-    while (cp) {
-        printf("doif (b_false): e label = %d\n", cp->b_label);
-        cp = cp->b_false;
-    }
-    cp = s;
-    while (cp) {
-        printf("doif: s label = %d\n", cp->b_label);
-        cp = cp->back.b_link;
-    }
-    printf("doif m: %d\n", m);
-    */
 
     return b;
 }
@@ -298,55 +508,129 @@ BNODE *doif(BNODE *e, int m, BNODE *s) {
  * doifelse - if then else statement
  */
 BNODE *doifelse(BNODE *e, int m1, BNODE *s1, BNODE *n, int m2, BNODE *s2) {
-    TNODE *bl1 = (TNODE *) tnode();
-    bl1->t_op = TO_BLABEL;
-    bl1->val.ln.t_con = e->back.b_true->b_label - 1;
-    TNODE *l1 = (TNODE *) tnode();
-    l1->t_op = TO_LABEL;
-    l1->val.ln.t_con = m1;
-    TNODE *equ1 = (TNODE *) tnode();
-    equ1->t_op = TO_EQU;
-    equ1->val.in.t_left = bl1;
-    equ1->val.in.t_right = l1;
-    emittree(equ1);
-
-    TNODE *bl2 = (TNODE *) tnode();
-    bl2->t_op = TO_BLABEL;
-    bl2->val.ln.t_con = e->b_false->b_label - 1;
-    TNODE *l2 = (TNODE *) tnode();
-    l2->t_op = TO_LABEL;
-    l2->val.ln.t_con = m2;
-    TNODE *equ2 = (TNODE *) tnode();
-    equ2->t_op = TO_EQU;
-    equ2->val.in.t_left = bl2;
-    equ2->val.in.t_right = l2;
-    emittree(equ2);
-
-    /*
-    BNODE *cp = e;
-    while (cp) {
-        printf("doifelse (b_true): e label = %d\n", cp->b_label);
-        cp = cp->back.b_true;
+#if debug
+    BNODE *a;
+    fprintf(stdout, "# --> start doifelse info\n");
+    if (e) {
+        printf("# e->b_label = %d\n", e->b_label);
+        a = e->back.b_true;
+        while (a) {
+            fprintf(stdout, "# e->back.b_true = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+        a = e->b_false;
+        while (a) {
+            fprintf(stdout, "# e->b_false = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
     }
-    cp = e;
-    while (cp) {
-        printf("doifelse (b_false): e label = %d\n", cp->b_label);
-        cp = cp->b_false;
+    printf("# m1 = %d\n", m1);
+    if (s1) {
+        printf("# s1->b_label = %d\n", s1->b_label);
+        a = s1->back.b_link;
+        while (a) {
+            fprintf(stdout, "# s1->back.b_link = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
     }
-    cp = s1;
+    if (n) {
+        printf("# n->b_label = %d\n", n->b_label);
+        a = n->back.b_link;
+        while (a) {
+            fprintf(stdout, "# n->back.b_link = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    printf("# m2 = %d\n", m2);
+    if (s2) {
+        printf("# s2->b_label = %d\n", s2->b_label);
+        a = s2->back.b_link;
+        while (a) {
+            fprintf(stdout, "# s2->back.b_link = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    printf("# labelno = %d\n", labelno);
+    printf("# --> end doifelse info\n");
+#endif
+
+    BNODE *f = e->back.b_true;
+    while (f) {
+        if (should_gen(f->b_label - 1)) {
+        TNODE *bl1 = (TNODE *) tnode();
+        bl1->t_op = TO_BLABEL;
+        bl1->val.ln.t_con = f->b_label - 1;
+        TNODE *l1 = (TNODE *) tnode();
+        l1->t_op = TO_LABEL;
+        l1->val.ln.t_con = m1;
+        TNODE *equ1 = (TNODE *) tnode();
+        equ1->t_op = TO_EQU;
+        equ1->val.in.t_left = bl1;
+        equ1->val.in.t_right = l1;
+        emittree(equ1);
+
+        equs[equs_n] = f->b_label - 1;
+        equs_n++;
+        }
+        f = f->back.b_link;
+    }
+
+    BNODE *cp = e->b_false;
     while (cp) {
-        printf("doifelse: s1 label = %d\n", cp->b_label);
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *blx = (TNODE *) tnode();
+            blx->t_op = TO_BLABEL;
+            blx->val.ln.t_con = cp->b_label - 1;
+            TNODE *lx = (TNODE *) tnode();
+            lx->t_op = TO_LABEL;
+            lx->val.ln.t_con = m2;
+            TNODE *equx = (TNODE *) tnode();
+            equx->t_op = TO_EQU;
+            equx->val.in.t_left = blx;
+            equx->val.in.t_right = lx;
+            emittree(equx);
+            
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
         cp = cp->back.b_link;
     }
-    cp = s2;
-    while (cp) {
-        printf("doifelse: s2 label = %d\n", cp->b_label);
-        cp = cp->back.b_link;
+    
+    if (should_gen(m1 - 1)) {
+        TNODE *blx = (TNODE *) tnode();
+        blx->t_op = TO_BLABEL;
+        blx->val.ln.t_con = m1 - 1;
+        TNODE *lx = (TNODE *) tnode();
+        lx->t_op = TO_LABEL;
+        lx->val.ln.t_con = m2;
+        TNODE *equx = (TNODE *) tnode();
+        equx->t_op = TO_EQU;
+        equx->val.in.t_left = blx;
+        equx->val.in.t_right = lx;
+        emittree(equx);
+        
+        equs[equs_n] = m1 - 1;
+        equs_n++;
     }
-    printf("doifelse: m1 = %d\n", m1);
-    printf("doifelse: m2 = %d\n", m2);
-    printf("patching...\n");
-    */
+
+    m();
+
+    if (should_gen(n->b_label)) {
+        TNODE *nn1 = (TNODE *) tnode();
+        nn1->t_op = TO_BLABEL;
+        nn1->val.ln.t_con = n->b_label;
+        TNODE *nn2 = (TNODE *) tnode();
+        nn2->t_op = TO_LABEL;
+        nn2->val.ln.t_con = labelno;
+        TNODE *eq3 = (TNODE *) tnode();
+        eq3->t_op = TO_EQU;
+        eq3->val.in.t_left = nn1;
+        eq3->val.in.t_right = nn2;
+        emittree(eq3);
+
+        equs[equs_n] = n->b_label;
+        equs_n++;
+    }
 
     backpatch(e->back.b_true, m1);
     backpatch(e->b_false, m2);
@@ -358,31 +642,6 @@ BNODE *doifelse(BNODE *e, int m1, BNODE *s1, BNODE *n, int m2, BNODE *s2) {
     ret->b_label = labelno;
     if (s2) { ret->back.b_link = (BNODE *) merge(temp, s2->back.b_link); }
     else { ret->back.b_link = (BNODE *) merge(temp, (BNODE *) NULL); }
-
-    /*
-    cp = e;
-    while (cp) {
-        printf("doifelse (b_true): e label = %d\n", cp->b_label);
-        cp = cp->back.b_true;
-    }
-    cp = e;
-    while (cp) {
-        printf("doifelse (b_false): e label = %d\n", cp->b_label);
-        cp = cp->b_false;
-    }
-    cp = s1;
-    while (cp) {
-        printf("doifelse: s1 label = %d\n", cp->b_label);
-        cp = cp->back.b_link;
-    }
-    cp = s2;
-    while (cp) {
-        printf("doifelse: s2 label = %d\n", cp->b_label);
-        cp = cp->back.b_link;
-    }
-    printf("doifelse: m1 = %d\n", m1);
-    printf("doifelse: m2 = %d\n", m2);
-    */
 
     return ret;
 }
@@ -417,17 +676,22 @@ BNODE *dostmts(BNODE *sl, int m, BNODE *s) {
         last->back.b_link = s;
         
         if (last->b_label > 1) {
-            TNODE *bl = (TNODE *) tnode();
-            bl->t_op = TO_BLABEL;
-            bl->val.ln.t_con = last->b_label - 1;
-            TNODE *l = (TNODE *) tnode();
-            l->t_op = TO_LABEL;
-            l->val.ln.t_con = m;
-            TNODE *equ = (TNODE *) tnode();
-            equ->t_op = TO_EQU;
-            equ->val.in.t_left = bl;
-            equ->val.in.t_right = l;
-            emittree(equ);
+            if (should_gen(last->b_label - 1)) {
+                TNODE *bl = (TNODE *) tnode();
+                bl->t_op = TO_BLABEL;
+                bl->val.ln.t_con = last->b_label - 1;
+                TNODE *l = (TNODE *) tnode();
+                l->t_op = TO_LABEL;
+                l->val.ln.t_con = m;
+                TNODE *equ = (TNODE *) tnode();
+                equ->t_op = TO_EQU;
+                equ->val.in.t_left = bl;
+                equ->val.in.t_right = l;
+                emittree(equ);
+
+                equs[equs_n] = last->b_label - 1;
+                equs_n++;
+            }
         }
     } else {
         sl = (BNODE *) bnode();
@@ -441,17 +705,56 @@ BNODE *dostmts(BNODE *sl, int m, BNODE *s) {
  * dowhile - while statement
  */
 BNODE *dowhile(int m1, BNODE *e, int m2, BNODE *s) {
-    TNODE *bl = (TNODE *) tnode();
-    bl->t_op = TO_BLABEL;
-    bl->val.ln.t_con = m1 + 1;
-    TNODE *l0 = (TNODE *) tnode();
-    l0->t_op = TO_LABEL;
-    l0->val.ln.t_con = m2;
-    TNODE *equ = (TNODE *) tnode();
-    equ->t_op = TO_EQU;
-    equ->val.in.t_left = bl;
-    equ->val.in.t_right = l0;
-    emittree(equ);
+#if debug
+    BNODE *a;
+    printf("# --> start dowhile info\n");
+    printf("# m1 = %d\n", m1);
+    if (e) {
+        printf("# e->b_label = %d\n", e->b_label);
+        a = e->back.b_true;
+        while (a) {
+            printf("# e->back.b_true = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+        a = e->b_false;
+        while (a) {
+            printf("# e->b_false = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    printf("# m2 = %d\n", m2);
+    if (s) {
+        printf("# s->b_label = %d\n", s->b_label);
+        a = s->back.b_link;
+        while (a) { 
+            printf("# s->back.b_link = %d\n", a->b_label);
+            a = a->back.b_link;
+        }
+    }
+    printf("# labelno = %d\n", labelno);
+    printf("# <-- end dowhile info\n");
+#endif
+ 
+    BNODE *cp = e->back.b_true;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *bl = (TNODE *) tnode();
+            bl->t_op = TO_BLABEL;
+            bl->val.ln.t_con = cp->b_label - 1;
+            TNODE *l0 = (TNODE *) tnode();
+            l0->t_op = TO_LABEL;
+            l0->val.ln.t_con = m2;
+            TNODE *equ = (TNODE *) tnode();
+            equ->t_op = TO_EQU;
+            equ->val.in.t_left = bl;
+            equ->val.in.t_right = l0;
+            emittree(equ);
+
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
+    }
 
     TNODE *l1 = (TNODE *) tnode();
     l1->t_op = TO_LABEL;
@@ -461,6 +764,29 @@ BNODE *dowhile(int m1, BNODE *e, int m2, BNODE *s) {
     j->t_mode = T_INT;
     j->val.in.t_left = l1;
     emittree(j);
+
+    m();
+
+    cp = e->b_false;
+    while (cp) {
+        if (should_gen(cp->b_label - 1)) {
+            TNODE *bl = (TNODE *) tnode();
+            bl->t_op = TO_BLABEL;
+            bl->val.ln.t_con = cp->b_label - 1;
+            TNODE *l0 = (TNODE *) tnode();
+            l0->t_op = TO_LABEL;
+            l0->val.ln.t_con = labelno;
+            TNODE *equ = (TNODE *) tnode();
+            equ->t_op = TO_EQU;
+            equ->val.in.t_left = bl;
+            equ->val.in.t_right = l0;
+            emittree(equ);
+
+            equs[equs_n] = cp->b_label - 1;
+            equs_n++;
+        }
+        cp = cp->back.b_link;
+    }
 
     backpatch(s->back.b_link, m1);
     backpatch(e->back.b_true, m2);
@@ -504,9 +830,8 @@ IDENT *fhead(IDENT *p) {
     r->t_op = TO_LIST;
     r->t_mode = 0;
 
-    fprintf(stderr, "warning: function arguments and locals are not double aligned\n");
     // TODO: double align
-    fprintf(stderr, "aoff: %d, loff: %d\n", aoff, loff);
+    fprintf(stderr, "warning: function arguments and locals are not double aligned\n");
     TNODE *arg_size = con(aoff);
     TNODE *loc_size = con(loff);
 
@@ -543,17 +868,22 @@ void ftail(IDENT *p, BNODE *s, int m) {
     BNODE *last = s;
     while (last->back.b_link) last = last->back.b_link;
     if (last->b_label > 1) {
-        TNODE *bl = (TNODE *) tnode();
-        bl->t_op = TO_BLABEL;
-        bl->val.ln.t_con = last->b_label - 1;
-        TNODE *l = (TNODE *) tnode();
-        l->t_op = TO_LABEL;
-        l->val.ln.t_con = m;
-        TNODE *equ = (TNODE *) tnode();
-        equ->t_op = TO_EQU;
-        equ->val.in.t_left = bl;
-        equ->val.in.t_right = l;
-        emittree(equ);
+        if (should_gen(last->b_label - 1)) {
+            TNODE *bl = (TNODE *) tnode();
+            bl->t_op = TO_BLABEL;
+            bl->val.ln.t_con = last->b_label - 1;
+            TNODE *l = (TNODE *) tnode();
+            l->t_op = TO_LABEL;
+            l->val.ln.t_con = m;
+            TNODE *equ = (TNODE *) tnode();
+            equ->t_op = TO_EQU;
+            equ->val.in.t_left = bl;
+            equ->val.in.t_right = l;
+            emittree(equ);
+
+            equs[equs_n] = last->b_label - 1;
+            equs_n++;
+        }
     }
 
     TNODE *retval = (TNODE *) tnode();
@@ -596,8 +926,26 @@ TNODE *id(char *x) {
  * aindex - subscript
  */
 TNODE *aindex(TNODE *x, TNODE *i) {
-   fprintf(stderr, "aindex not implemented\n");
-   return ((TNODE *) NULL);
+
+    TNODE *shift_val = (TNODE *) tnode();
+    shift_val->t_op = TO_CON;
+    shift_val->t_mode = T_INT;
+    if (x->t_mode & T_INT) shift_val->val.ln.t_con = 2;
+    else if (x->t_mode & T_DOUBLE) shift_val->val.ln.t_con = 3;
+
+    TNODE *ls = (TNODE *) tnode();
+    ls->t_op = TO_LS;
+    ls->t_mode = T_INT;
+    ls->val.in.t_left = i;
+    ls->val.in.t_right = shift_val;
+
+    TNODE *offset = (TNODE *) tnode();
+    offset->t_op = TO_PLUS;
+    offset->t_mode = x->t_mode;
+    offset->val.in.t_left = x;
+    offset->val.in.t_right = ls;
+
+    return offset;
 }
 
 /*
@@ -650,8 +998,24 @@ TNODE *op_arith(int op, TNODE *x, TNODE *y) {
     TNODE *ret = (TNODE *) tnode();
     ret->t_op = op;
     ret->t_mode = promote(x, y);
-    ret->val.in.t_left = x;
-    ret->val.in.t_right = y;
+    if (ret->t_mode & T_DOUBLE && x->t_mode & T_INT) {
+        TNODE *nl = (TNODE *) tnode();
+        nl->t_op = TO_CAST;
+        nl->t_mode = T_DOUBLE;
+        nl->val.in.t_left = x;
+        ret->val.in.t_left = nl;
+    } else {
+        ret->val.in.t_left = x;
+    }
+    if (ret->t_mode & T_DOUBLE && y->t_mode & T_INT) {
+        TNODE *nr = (TNODE *) tnode();
+        nr->t_op = TO_CAST;
+        nr->t_mode = T_DOUBLE;
+        nr->val.in.t_left = y;
+        ret->val.in.t_right = nr;
+    } else {
+        ret->val.in.t_right = y;
+    }
     if (op == TO_DIV && y->t_op == TO_CON && y->val.ln.t_con == 0) {
         fprintf(stderr, "warning: division by zero\n");
     }
@@ -727,11 +1091,25 @@ TNODE *op_neg(TNODE *x) {
 BNODE *rel(int op, TNODE *x, TNODE *y) {
     TNODE *cmp_node = (TNODE *) tnode();
     cmp_node->t_op = op;
-    // TODO: cast
-    fprintf(stderr, "warning: no casting is done for rel ops\n");
-    cmp_node->t_mode = x->t_mode;
-    cmp_node->val.in.t_left = x;
-    cmp_node->val.in.t_right = y;
+    cmp_node->t_mode = promote(x, y);
+    if (cmp_node->t_mode & T_DOUBLE && x->t_mode & T_INT) {
+        TNODE *nl = (TNODE *) tnode();
+        nl->t_op = TO_CAST;
+        nl->t_mode = cmp_node->t_mode;
+        nl->val.in.t_left = x;
+        cmp_node->val.in.t_left = nl;
+    } else {
+        cmp_node->val.in.t_left = x;
+    }
+    if (cmp_node->t_mode & T_DOUBLE && y->t_mode & T_INT) {
+        TNODE *nr = (TNODE *) tnode();
+        nr->t_op = TO_CAST;
+        nr->t_mode = cmp_node->t_mode;
+        nr->val.in.t_left = y;
+        cmp_node->val.in.t_right = nr;
+    } else {
+        cmp_node->val.in.t_right = y;
+    }
 
     TNODE *bl_node = (TNODE *) tnode();
     bl_node->t_op = TO_BLABEL;
@@ -779,7 +1157,7 @@ TNODE *set(TNODE *x, TNODE *y) {
    ret->t_op = TO_ASSIGN;
    ret->t_mode = BASETYPE(x->t_mode);
    ret->val.in.t_left = x;
-   if (x->t_mode != y->t_mode) {
+   if (!(x->t_mode & y->t_mode)) {
         TNODE *casted = (TNODE *) tnode();
         casted->t_op = TO_CAST;
         casted->t_mode = x->t_mode;
